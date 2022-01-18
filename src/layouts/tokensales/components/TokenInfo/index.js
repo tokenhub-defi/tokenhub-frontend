@@ -8,6 +8,7 @@ import { useContext, useEffect } from "react";
 import wavesWhite from "assets/images/shapes/waves-white.svg";
 import SuiTypography from "components/SuiTypography";
 import humanize from "humanize";
+import { ArrowRight } from "@mui/icons-material";
 
 const TokenInfo = () => {
   const { tokenSalesStore } = useContext(TokenSalesContext);
@@ -26,7 +27,12 @@ const TokenInfo = () => {
               <Grid item xs={12} lg={6}>
                 <SuiBox display="flex" flexDirection="column" height="100%">
                   <SuiTypography variant="h6" component="div">
-                    Number of tokens for sale:{" "}
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Tokens for sale:{" "}
                     {humanize.numberFormat(
                       formatTokenAmountToHumanReadable(
                         tokenContract.saleInfo.num_of_tokens.toString(),
@@ -35,12 +41,27 @@ const TokenInfo = () => {
                     )}
                   </SuiTypography>
                   <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
                     Current period: {tokenContract.tokenPeriod}
                   </SuiTypography>
                   <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
                     Total deposit: {tokenContract.totalDeposit.formatted_amount}
                   </SuiTypography>
                   <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
                     Price:{" "}
                     {humanize.numberFormat(
                       tokenContract.totalDeposit.formatted_amount /
