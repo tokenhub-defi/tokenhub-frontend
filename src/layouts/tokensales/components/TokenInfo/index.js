@@ -1,5 +1,5 @@
 /* eslint-disable import/named */
-import { Card, Grid, Skeleton } from "@mui/material";
+import { Card, Grid, Skeleton, Typography } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import { formatTokenAmountToHumanReadable } from "helpers/TokenUltis";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
@@ -8,6 +8,7 @@ import { useContext, useEffect } from "react";
 import wavesWhite from "assets/images/shapes/waves-white.svg";
 import SuiTypography from "components/SuiTypography";
 import humanize from "humanize";
+import { ArrowRight } from "@mui/icons-material";
 
 const TokenInfo = () => {
   const { tokenSalesStore } = useContext(TokenSalesContext);
@@ -25,31 +26,64 @@ const TokenInfo = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} lg={6}>
                 <SuiBox display="flex" flexDirection="column" height="100%">
+                  <Typography variant="h4" component="div" sx={{ mb: 1 }}>
+                    Token Information
+                  </Typography>
                   <SuiTypography variant="h6" component="div">
-                    Number of tokens for sale:{" "}
-                    {humanize.numberFormat(
-                      formatTokenAmountToHumanReadable(
-                        tokenContract.saleInfo.num_of_tokens.toString(),
-                        tokenContract.tokenInfo.decimals
-                      )
-                    )}
-                  </SuiTypography>
-                  <SuiTypography variant="h6" component="div">
-                    Current period: {tokenContract.tokenPeriod}
-                  </SuiTypography>
-                  <SuiTypography variant="h6" component="div">
-                    Total deposit: {tokenContract.totalDeposit.formatted_amount}
-                  </SuiTypography>
-                  <SuiTypography variant="h6" component="div">
-                    Price:{" "}
-                    {humanize.numberFormat(
-                      tokenContract.totalDeposit.formatted_amount /
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Tokens for sale:{" "}
+                    <SuiTypography variant="h6" component="span" color="primary">
+                      {humanize.numberFormat(
                         formatTokenAmountToHumanReadable(
                           tokenContract.saleInfo.num_of_tokens.toString(),
                           tokenContract.tokenInfo.decimals
-                        ),
-                      tokenContract.tokenInfo.decimals
-                    )}
+                        )
+                      )}
+                    </SuiTypography>
+                  </SuiTypography>
+                  <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Current period:{" "}
+                    <SuiTypography variant="h6" component="span" color="primary">
+                      {tokenContract.tokenPeriod}
+                    </SuiTypography>
+                  </SuiTypography>
+                  <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Total deposit:{" "}
+                    <SuiTypography variant="h6" component="span" color="primary">
+                      {tokenContract.totalDeposit.formatted_amount}
+                    </SuiTypography>
+                  </SuiTypography>
+                  <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Price:{" "}
+                    <SuiTypography variant="h6" component="span" color="primary">
+                      {humanize.numberFormat(
+                        tokenContract.totalDeposit.formatted_amount /
+                          formatTokenAmountToHumanReadable(
+                            tokenContract.saleInfo.num_of_tokens.toString(),
+                            tokenContract.tokenInfo.decimals
+                          ),
+                        tokenContract.tokenInfo.decimals
+                      )}
+                    </SuiTypography>
                   </SuiTypography>
                 </SuiBox>
               </Grid>

@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
 import PeriodCard from "../PeriodCard/PeriodCard";
+import SalesRules from "../SalesRules";
 import TokenInfo from "../TokenInfo";
 import TokenSalesForm from "../TokenSalesForm";
 
@@ -130,6 +131,7 @@ const TokenSalesContainer = () => {
             </Grid>
             <Grid item xs={12} lg={5}>
               <TokenInfo />
+              <SalesRules />
             </Grid>
           </Grid>
         </SuiBox>
