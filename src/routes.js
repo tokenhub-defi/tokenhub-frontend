@@ -44,7 +44,6 @@ Coded by www.creative-tim.com
 // import Profile from "layouts/profile";
 // import SignIn from "layouts/authentication/sign-in";
 // import SignUp from "layouts/authentication/sign-up";
-import TokenSales from "layouts/tokensales";
 import TokenFactory from "layouts/tokenfactory";
 
 // Soft UI Dashboard React icons
@@ -58,6 +57,7 @@ import SpaceShip from "examples/Icons/SpaceShip";
 // import CreditCard from "examples/Icons/CreditCard";
 import Cube from "examples/Icons/Cube";
 import DashboardToken from "layouts/tokenfactory/components/DashboardToken";
+import ListTokenSales from "layouts/listtokensales";
 
 const routes = [
   // {
@@ -109,11 +109,29 @@ const routes = [
   { type: "title", title: "Token Sales", key: "token-sale" },
   {
     type: "collapse",
-    name: "Token Sales",
-    key: "token-sales",
-    route: "/token-sales",
+    name: "Live Sales",
+    key: "live-sales",
+    route: "/token-sales/live-sales",
     icon: <Shop size="12px" />,
-    component: TokenSales,
+    component: ListTokenSales,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Upcoming Sales",
+    key: "upcoming-sales",
+    route: "/token-sales/upcoming-sales",
+    icon: <Shop size="12px" />,
+    component: ListTokenSales,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Past Sales",
+    key: "past-sales",
+    route: "/token-sales/past-sales",
+    icon: <Shop size="12px" />,
+    component: ListTokenSales,
     noCollapse: true,
   },
   // {
