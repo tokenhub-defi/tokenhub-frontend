@@ -12,7 +12,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import TokenNavbar from "components/App/TokenNavbar";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import humanize from "humanize";
-import { Grid } from "@mui/material";
+import { Avatar, Grid, Typography } from "@mui/material";
 import MiniStatisticsCard from "examples/Cards/StatisticsCards/MiniStatisticsCard";
 // eslint-disable-next-line import/no-extraneous-dependencies
 
@@ -21,7 +21,6 @@ const DashboardTokenContainer = () => {
   const { tokenStore } = tokenFactoryStore;
   const [rows, setRows] = useState([]);
   useEffect(async () => {
-    // eslint-disable-next-line no-debugger
     if (tokenStore.accountId) {
       await tokenFactoryStore.initContract();
       try {
@@ -70,7 +69,11 @@ const DashboardTokenContainer = () => {
                 rel="noreferrer"
               >
                 <SuiBox>
-                  <img src={t.icon} style={{ verticalAlign: "middle" }} /> <span>{t.symbol}</span>
+                  <Avatar
+                    src={t.icon}
+                    sx={{ verticalAlign: "middle", float: "left", mr: "0.5rem" }}
+                  />{" "}
+                  <Typography component="span">{t.symbol}</Typography>
                 </SuiBox>
               </a>
             ),

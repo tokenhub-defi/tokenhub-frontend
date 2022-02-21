@@ -32,7 +32,6 @@ const CreateToken = (props) => {
     accept: "image/jpeg, image/png",
     maxFiles: 1,
     onDrop: (acceptedFiles) => {
-      // eslint-disable-next-line no-debugger
       resizeImage({ file: acceptedFiles[0], maxSize: 32 }).then((result) => {
         tokenFactoryStore.token.icon = result;
       });

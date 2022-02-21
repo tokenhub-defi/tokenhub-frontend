@@ -7,28 +7,32 @@ import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext"
 import { observer } from "mobx-react";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import PeriodCard from "../PeriodCard/PeriodCard";
 import SalesRules from "../SalesRules";
 import TokenInfo from "../TokenInfo";
 import TokenSalesForm from "../TokenSalesForm";
 
 const TokenSalesContainer = () => {
-  const { tokenSalesStore } = useContext(TokenSalesContext);
+  const { tokenSalesStore, salesContractStore } = useContext(TokenSalesContext);
   const { tokenContract, tokenStore, tokenState } = tokenSalesStore;
   const [startCountdown, setStartCountdown] = useState();
   const [saleCountDown, setSaleCountdown] = useState();
   const [graceCountdown, setGraceCountdown] = useState();
 
+  const { saleId } = useParams();
+
   useEffect(() => {
     const init = async () => {
       try {
-        await tokenSalesStore.initContract();
+        await salesContractStore.initSalesContract();
+        const campaign = await salesContractStore.getCampaign(parseInt(saleId, 10));
+        if (campaign) await tokenSalesStore.initContract(campaign.sale_contract);
       } catch (error) {
         console.error("Token Sale Init Contract: ", error);
       }
     };
-    console.log("Token Sale Init Contract: ", tokenStore.accountId);
-    if (tokenStore.accountId) {
+    if (tokenStore.accountId && saleId) {
       init();
     }
   }, [tokenStore.accountId]);
@@ -126,10 +130,10 @@ const TokenSalesContainer = () => {
         </SuiBox>
         <SuiBox mb={3}>
           <Grid container spacing={3}>
-            <Grid item xs={12} lg={7}>
+            <Grid item xs={12} lg={6}>
               <TokenSalesForm />
             </Grid>
-            <Grid item xs={12} lg={5}>
+            <Grid item xs={12} lg={6}>
               <TokenInfo />
               <SalesRules />
             </Grid>

@@ -1,7 +1,6 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable lines-between-class-members */
 /* eslint-disable object-shorthand */
-/* eslint-disable no-debugger */
 import { observable, action, makeObservable, makeAutoObservable } from "mobx";
 import moment from "moment";
 import { Contract } from "near-api-js";
@@ -89,13 +88,14 @@ export class TokenSalesStore {
     this.tokenStore = tokenStore;
   };
 
-  initContract = async () => {
+  initContract = async (saleContract) => {
     // Initialize connection to the NEAR testnet
     console.log(this.tokenStore.nearConfig.contractName);
     try {
       const contract = await new Contract(
         this.tokenStore.walletConnection.account(),
-        "dev-1636808664410-33820590914842",
+        // "dev-1636808664410-33820590914842",
+        saleContract,
         {
           viewMethods: ["get_total_deposit", "get_sale_info", "check_sale_status", "get_user_sale"],
           // Change methods can modify the state. But you don't receive the returned value when called.
@@ -158,10 +158,10 @@ export class TokenSalesStore {
       const saleInfo = result[0];
       const totalDeposit = result[1];
       const tokenPeriod = result[2];
-      const tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
+      let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
 
       const tokenInfo = await tokenContract.ft_metadata();
-      this.tokenContract = {
+      tokenContract = {
         ...tokenContract,
         ...{
           totalDeposit: totalDeposit,
@@ -170,10 +170,12 @@ export class TokenSalesStore {
           tokenInfo: tokenInfo,
         },
       };
-      console.log(this.tokenContract);
+      this.tokenContract = tokenContract;
+      return tokenContract;
     } catch (error) {
       console.log(error);
     }
+    return null;
   };
 
   submitDeposit = async () => {

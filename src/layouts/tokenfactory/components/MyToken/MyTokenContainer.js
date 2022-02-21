@@ -40,8 +40,6 @@ const MyTokenContainer = () => {
     await tokenFactoryStore.claim(e);
   };
   useEffect(async () => {
-    // eslint-disable-next-line no-debugger
-    debugger;
     if (tokenStore.accountId) {
       await tokenFactoryStore.initContract();
       try {
