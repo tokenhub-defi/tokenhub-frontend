@@ -85,22 +85,42 @@ function TokenNavbar({ absolute, light, isMini }) {
               />
             </SuiBox> */}
             <SuiBox color={light ? "white" : "inherit"}>
-              <IconButton sx={navbarIconButton} size="medium" onClick={handleLoginClick}>
-                <Icon
-                  sx={({ palette: { dark, white } }) => ({
-                    color: light ? white.main : dark.main,
-                  })}
-                >
-                  account_circle
-                </Icon>
-                <SuiTypography
-                  variant="button"
-                  fontWeight="medium"
-                  color={light ? "white" : "dark"}
-                >
-                  {tokenStore?.isSignedIn ? `Welcome ${tokenStore?.accountId}!` : " Connect wallet"}
-                </SuiTypography>
-              </IconButton>
+              {tokenStore?.isSignedIn ? (
+                <IconButton sx={navbarIconButton} size="medium">
+                  <Icon
+                    sx={({ palette: { dark, white } }) => ({
+                      color: light ? white.main : dark.main,
+                    })}
+                  >
+                    account_circle
+                  </Icon>
+                  <SuiTypography
+                    variant="button"
+                    fontWeight="medium"
+                    color={light ? "white" : "dark"}
+                  >
+                    Welcome <b>{tokenStore?.accountId}</b>
+                  </SuiTypography>
+                </IconButton>
+              ) : (
+                <IconButton sx={navbarIconButton} size="medium" onClick={handleLoginClick}>
+                  <Icon
+                    sx={({ palette: { dark, white } }) => ({
+                      color: light ? white.main : dark.main,
+                    })}
+                  >
+                    account_circle
+                  </Icon>
+                  <SuiTypography
+                    variant="button"
+                    fontWeight="medium"
+                    color={light ? "white" : "dark"}
+                  >
+                    Connect wallet
+                  </SuiTypography>
+                </IconButton>
+              )}
+
               <IconButton
                 size="medium"
                 color="inherit"

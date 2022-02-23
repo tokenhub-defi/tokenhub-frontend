@@ -21,6 +21,7 @@ import { resizeImage } from "helpers/TokenUltis";
 const CreateToken = (props) => {
   const { setAlert } = props;
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
+  const { tokenStore } = tokenFactoryStore;
   const [vestingStartTime, setVestingStartTime] = useState();
   const [vestingEndTime, setVestingEndTime] = useState(moment().add(30, "days"));
   // eslint-disable-next-line react/destructuring-assignment
@@ -394,20 +395,33 @@ const CreateToken = (props) => {
               >
                 Create Token
               </SuiButton> */}
-              <LoadingButton
-                disabled={loading || !tokenValidation}
-                sx={{
-                  background: "linear-gradient(to left, #642b73, #c6426e)",
-                  color: "#fff",
-                }}
-                onClick={handleRegisterToken}
-                loading={loading}
-                loadingPosition="start"
-                startIcon={<BackupOutlined color="#fff" fontSize="large" />}
-                variant="contained"
-              >
-                Create Token
-              </LoadingButton>
+              {tokenStore.isSignedIn ? (
+                <LoadingButton
+                  disabled={loading || !tokenValidation}
+                  sx={{
+                    background: "linear-gradient(to left, #642b73, #c6426e)",
+                    color: "#fff",
+                  }}
+                  onClick={handleRegisterToken}
+                  loading={loading}
+                  loadingPosition="start"
+                  startIcon={<BackupOutlined color="#fff" fontSize="large" />}
+                  variant="contained"
+                >
+                  Create Token
+                </LoadingButton>
+              ) : (
+                <SuiButton
+                  color="primary"
+                  variant="gradient"
+                  onClick={() => {
+                    tokenStore.login();
+                  }}
+                  sx={{ width: "100%" }}
+                >
+                  Connect Wallet
+                </SuiButton>
+              )}
             </SuiBox>
           </Grid>
         </Card>

@@ -105,7 +105,7 @@ const App = () => {
           component={TokenSales}
           key="token-info"
         />
-        ;
+
         <Redirect from="*" to="/token-factory/dashboard" />
       </Switch>
     </ThemeProvider>

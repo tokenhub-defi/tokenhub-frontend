@@ -22,18 +22,37 @@ const TokenSalesContainer = () => {
 
   const { saleId } = useParams();
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await salesContractStore.initSalesContract();
-        const campaign = await salesContractStore.getCampaign(parseInt(saleId, 10));
-        if (campaign) await tokenSalesStore.initContract(campaign.sale_contract);
-      } catch (error) {
-        console.error("Token Sale Init Contract: ", error);
+  const getCampaign = async () => {
+    let camp = null;
+    try {
+      camp = await salesContractStore.getCampaign(parseInt(saleId, 10));
+      if (camp) {
+        await tokenSalesStore.fetchContractStatus(camp.sale_contract);
       }
-    };
-    if (tokenStore.accountId && saleId) {
-      init();
+    } catch (error) {
+      console.error("Token Sale Init Contract: ", error);
+    }
+    return camp;
+  };
+
+  const init = async (contractId) => {
+    try {
+      await salesContractStore.initSalesContract();
+      await tokenSalesStore.initContract(contractId);
+    } catch (error) {
+      console.error("Token Sale Init Contract: ", error);
+    }
+  };
+
+  useEffect(async () => {
+    let campaign = null;
+
+    if (saleId) {
+      tokenSalesStore.setAccountId(saleId);
+      campaign = await getCampaign();
+    }
+    if (tokenStore.accountId && campaign) {
+      init(campaign.sale_contract);
     }
   }, [tokenStore.accountId]);
 

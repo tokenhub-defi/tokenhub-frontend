@@ -3,6 +3,8 @@ import { Contract } from "near-api-js";
 
 // eslint-disable-next-line import/prefer-default-export
 export class SalesContractStore {
+  ACCOUNT_ID = "sales.tokenhub.testnet";
+
   tokenStore;
 
   tokenSalesStore;
@@ -37,7 +39,7 @@ export class SalesContractStore {
     try {
       const contract = await new Contract(
         this.tokenStore.walletConnection.account(),
-        "sales.tokenhub.testnet",
+        this.ACCOUNT_ID,
         {
           viewMethods: ["get_campaign", "get_campaign_list"],
           // Change methods can modify the state. But you don't receive the returned value when called.
@@ -52,28 +54,13 @@ export class SalesContractStore {
 
   getCampaigns = async (fromIndex, limit) => {
     try {
-      const res = await this.salesContract.get_campaign_list({
+      const res = await this.tokenStore.callViewMethod(this.ACCOUNT_ID, "get_campaign_list", {
         from_index: fromIndex,
         limit,
       });
-      // Init token contract
-      const promiseInitTokenSaleContracts = res.result.map(
-        (item) =>
-          new Contract(this.tokenStore.walletConnection.account(), item[1].sale_contract, {
-            viewMethods: [
-              "get_total_deposit",
-              "get_sale_info",
-              "check_sale_status",
-              "get_user_sale",
-            ],
-            // Change methods can modify the state. But you don't receive the returned value when called.
-            changeMethods: ["deposit", "withdraw", "finish", "redeem"],
-          })
-      );
-      const tokenSalesContracts = await Promise.all(promiseInitTokenSaleContracts);
       // Fetch token info
-      const promiseFetchTokenInfos = tokenSalesContracts.map((tsc) =>
-        this.tokenSalesStore.fetchContractStatus(tsc)
+      const promiseFetchTokenInfos = res.result.map((item) =>
+        this.tokenSalesStore.fetchContractStatus(item[1].sale_contract)
       );
       const metaData = await Promise.all(promiseFetchTokenInfos);
       // Fetch reference info
@@ -91,7 +78,7 @@ export class SalesContractStore {
       // Map data
       res.result = res.result.map((item, index) => {
         const data = item;
-        data[1] = { ...data[1], ...{ contract: tokenSalesContracts[index] }, ...metaData[index] };
+        data[1] = { ...data[1], ...metaData[index] };
         const refIdIndex = referenceIds.findIndex((ri) => ri === data[0]);
         if (refIdIndex > -1) {
           data[1] = { ...data[1], ...{ refData: refData[refIdIndex] } };
@@ -107,7 +94,10 @@ export class SalesContractStore {
 
   getCampaign = async (campId) => {
     try {
-      const campaign = await this.salesContract.get_campaign({ id: campId });
+      // const campaign = await this.salesContract.get_campaign({ id: campId });
+      const campaign = await this.tokenStore.callViewMethod(this.ACCOUNT_ID, "get_campaign", {
+        id: campId,
+      });
       console.log("get_campaign", campaign);
       return campaign;
     } catch (error) {

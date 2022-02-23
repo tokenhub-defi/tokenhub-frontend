@@ -48,6 +48,7 @@ export class TokenSalesStore {
   notification = new NotificationObj();
   loading = false;
   tokenStore = null;
+  ACCOUNT_ID = null;
 
   constructor() {
     // makeAutoObservable(this);
@@ -65,6 +66,7 @@ export class TokenSalesStore {
       initContract: action,
       initTokenContract: action,
       fetchUserData: action,
+      removeUseData: action,
       fetchContractStatus: action,
       setTokenStore: action,
       // logout: action,
@@ -79,6 +81,7 @@ export class TokenSalesStore {
       getStartTime: action,
       getSalesEndTime: action,
       getRedeemEndTime: action,
+      setAccountId: action,
       // countDownDeposit: computed,
       // countDownWithdraw: computed,
       // countDownRedeem: computed
@@ -86,6 +89,9 @@ export class TokenSalesStore {
   }
   setTokenStore = (tokenStore) => {
     this.tokenStore = tokenStore;
+  };
+  setAccountId = (accountId) => {
+    this.ACCOUNT_ID = accountId;
   };
 
   initContract = async (saleContract) => {
@@ -106,10 +112,11 @@ export class TokenSalesStore {
       this.tokenState = {
         contract,
       };
+      this.tokenContract = { ...this.tokenContract, ...contract };
 
-      if (contract) {
-        await this.fetchContractStatus(contract);
-      }
+      // if (contract) {
+      //   await this.fetchContractStatus(contract);
+      // }
       if (this.tokenStore.walletConnection.isSignedIn()) {
         await this.fetchUserData(contract);
       }
@@ -148,21 +155,28 @@ export class TokenSalesStore {
     }
   };
 
-  fetchContractStatus = async (contract) => {
+  removeUseData = () => {
+    this.userContract = null;
+  };
+
+  fetchContractStatus = async (accountId = null) => {
     try {
       const result = await Promise.all([
-        contract.get_sale_info(),
-        contract.get_total_deposit(),
-        contract.check_sale_status(),
+        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_sale_info"),
+        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_total_deposit"),
+        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "check_sale_status"),
       ]);
       const saleInfo = result[0];
       const totalDeposit = result[1];
       const tokenPeriod = result[2];
-      let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
+      // let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
 
-      const tokenInfo = await tokenContract.ft_metadata();
-      tokenContract = {
-        ...tokenContract,
+      const tokenInfo = await this.tokenStore.callViewMethod(
+        saleInfo.ft_contract_name,
+        "ft_metadata"
+      );
+      const tokenContract = {
+        ...this.tokenContract,
         ...{
           totalDeposit: totalDeposit,
           tokenPeriod: tokenPeriod,
@@ -277,24 +291,6 @@ export class TokenSalesStore {
       this.fetchUserData(this.tokenState.contract);
     }
   };
-
-  //   get period() {
-  //     if (this.tokenContract?.saleInfo?.start_time) {
-  //       const startTime = this.tokenContract.saleInfo.start_time / 1000000;
-  //       const saleDuration = this.tokenContract.saleInfo.sale_duration / 1000000;
-  //       const graceDuration = this.tokenContract.saleInfo.grace_duration / 1000000;
-  //       const current = new Date().getTime();
-  //       let result = "NOT_STARTED";
-  //       if (current <= startTime + saleDuration) {
-  //         result = "ON_SALE";
-  //       } else if (current <= startTime + saleDuration + graceDuration) {
-  //         result = "ON_GRACE";
-  //       } else {
-  //         result = "FINISHED";
-  //       }
-  //     }
-  //     return result;
-  //   }
 
   getCountdownStart = (tokenContract) => {
     if (tokenContract?.saleInfo) {

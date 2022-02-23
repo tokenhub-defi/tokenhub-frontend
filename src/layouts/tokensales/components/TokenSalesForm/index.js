@@ -19,7 +19,8 @@ import SuiBox from "components/SuiBox";
 import { formatTokenAmountToHumanReadable } from "helpers/TokenUltis";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
 import { observer } from "mobx-react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import SuiButton from "components/SuiButton";
 import SalesForm from "../SalesForm";
 
 export const ACTION = {
@@ -82,6 +83,12 @@ const TokenSalesForm = () => {
   let { loading } = tokenSalesStore;
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [action, setAction] = useState();
+
+  useEffect(() => {
+    if (!tokenStore.isSignedIn) {
+      tokenSalesStore.removeUseData();
+    }
+  }, [tokenStore.isSignedIn]);
 
   const handleSubmitClick = async () => {
     loading = true;
@@ -190,7 +197,22 @@ const TokenSalesForm = () => {
               </Grid>
             </Grid>
           ) : (
-            <TokenSalesFormSkeleton />
+            <>
+              {tokenStore.isSignedIn ? (
+                <TokenSalesFormSkeleton />
+              ) : (
+                <SuiButton
+                  color="primary"
+                  variant="gradient"
+                  onClick={() => {
+                    tokenStore.login();
+                  }}
+                  sx={{ width: "100%", mt: "1rem" }}
+                >
+                  Connect Wallet
+                </SuiButton>
+              )}
+            </>
           )}
         </SuiBox>
       </Card>
