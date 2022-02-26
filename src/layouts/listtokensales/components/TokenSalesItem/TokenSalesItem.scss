@@ -1,0 +1,15 @@
+.token-sales-item {
+  &:hover {
+    cursor: pointer;
+    box-shadow: 1px 1rem 1rem #c3c3c3;
+  }
+  .slider-container {
+    margin: 1rem 0;
+    border-top: 1px solid #cfcfcf;
+    border-bottom: 1px solid #cfcfcf;
+
+    .slider-total {
+      margin: 2.5rem 0 0;
+    }
+  }
+}

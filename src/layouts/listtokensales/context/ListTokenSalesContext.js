@@ -1,34 +1,38 @@
 /* eslint-disable import/named */
 /* eslint-disable react/prop-types */
 import { useSoftUIController } from "context";
-import { SalesContractStore } from "layouts/listtokensales/stores/SalesContractStore";
 import React, { createContext } from "react";
-import { TokenSalesStore } from "../stores/TokenSales.store";
+import { SalesContractStore } from "../stores/SalesContractStore";
+import { ListTokenStore } from "../stores/ListTokenSalesStore";
+import { TokenSalesStore } from "../../tokensales/stores/TokenSales.store";
 
-const TokenSalesContext = createContext();
+const ListTokenSalesContext = createContext();
 
+const listTokenSalesStore = new ListTokenStore();
 const tokenSalesStore = new TokenSalesStore();
 const salesContractStore = new SalesContractStore();
 
-const TokenSalesProvider = (props) => {
+const ListTokenSalesProvider = (props) => {
   const [controller] = useSoftUIController();
   const { tokenStore } = controller;
   const { children } = props;
-
   tokenSalesStore.setTokenStore(tokenStore);
+  listTokenSalesStore.setTokenStore(tokenStore);
   salesContractStore.setTokenStore(tokenStore);
   salesContractStore.setTokenSalesStore(tokenSalesStore);
 
   return (
-    <TokenSalesContext.Provider
+    <ListTokenSalesContext.Provider
       value={{
+        tokenStore,
         tokenSalesStore,
+        listTokenSalesStore,
         salesContractStore,
       }}
     >
       {children}
-    </TokenSalesContext.Provider>
+    </ListTokenSalesContext.Provider>
   );
 };
 
-export { TokenSalesContext, TokenSalesProvider };
+export { ListTokenSalesContext, ListTokenSalesProvider };

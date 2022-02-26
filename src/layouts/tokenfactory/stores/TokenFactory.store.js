@@ -130,7 +130,6 @@ export class TokenFactoryStore {
       claim: action,
       getTransactionStatus: action,
       checkExistenceToken: action,
-      getListAllTokens: action,
       getListToken: action,
       getListAllTokenContracts: action,
       registerParams: computed,
@@ -341,45 +340,39 @@ export class TokenFactoryStore {
     return null;
   };
 
-  getListAllTokens = async () => {
-    if (this.tokenStore.accountId) {
-      const value = await this.contract.list_all_tokens();
-      return value;
-    }
-    return null;
-  };
-
-  getListTokenState = async () => {};
-
   getListAllTokenContracts = async () => {
-    // const { account } = this.tokenStore;
-    if (this.tokenStore.account && this.tokenStore.account.accountId) {
-      const value = await this.contract.list_all_token_contracts();
-      let start = 0;
-      const length = 50;
-      const promises = [];
-      let finalList = [];
-      // console.log("getListAllTokenContracts :", value);
-      if (value) {
-        while (start < value.length) {
-          // console.log(start);
-          const stateLst = value.slice(start, start + length);
-          promises.push(
-            this.contract.list_token_states({
+    const value = await this.tokenStore.callViewMethod(
+      this.tokenStore.nearConfig.contractName,
+      "list_all_token_contracts"
+    );
+    let start = 0;
+    const length = 50;
+    const promises = [];
+    let finalList = [];
+    // console.log("getListAllTokenContracts :", value);
+    if (value) {
+      while (start < value.length) {
+        // console.log(start);
+        const stateLst = value.slice(start, start + length);
+        promises.push(
+          this.tokenStore.callViewMethod(
+            this.tokenStore.nearConfig.contractName,
+            "list_token_states",
+            {
               token_contracts: stateLst,
-            })
-          );
-          start += length;
-        }
-
-        const data = await Promise.all(promises);
-        data.forEach((element) => {
-          finalList = [...finalList, ...element];
-        });
-
-        // console.log("list_token_states", finalList);
-        return finalList;
+            }
+          )
+        );
+        start += length;
       }
+
+      const data = await Promise.all(promises);
+      data.forEach((element) => {
+        finalList = [...finalList, ...element];
+      });
+
+      // console.log("list_token_states", finalList);
+      return finalList;
     }
     return null;
   };

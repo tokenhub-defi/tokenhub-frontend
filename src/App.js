@@ -25,6 +25,7 @@ import { useSoftUIController, setMiniSidenav } from "context";
 // Images
 import brand from "assets/images/logo.png";
 import { observer } from "mobx-react";
+import TokenSales from "layouts/tokensales";
 
 const App = () => {
   const [controller, dispatch] = useSoftUIController();
@@ -98,6 +99,13 @@ const App = () => {
       )}
       <Switch>
         {getRoutes(routes)}
+        <Route
+          exact
+          path="/token-sales/token-info/:saleId"
+          component={TokenSales}
+          key="token-info"
+        />
+
         <Redirect from="*" to="/token-factory/dashboard" />
       </Switch>
     </ThemeProvider>

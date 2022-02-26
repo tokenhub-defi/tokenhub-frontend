@@ -39,7 +39,7 @@ const SalesForm = (props) => {
           <SuiTypography component="label" variant="caption" fontWeight="bold">
             {label}
           </SuiTypography>
-          <Grid container xs={12}>
+          <Grid container>
             {/* <SuiInput type="number" placeholder="Deposit" onChange={onTextChange} /> */}
             <Grid item xs={10} sx={{ pr: 1 }}>
               <OutlinedInput

@@ -7,29 +7,52 @@ import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext"
 import { observer } from "mobx-react";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import PeriodCard from "../PeriodCard/PeriodCard";
 import SalesRules from "../SalesRules";
 import TokenInfo from "../TokenInfo";
 import TokenSalesForm from "../TokenSalesForm";
 
 const TokenSalesContainer = () => {
-  const { tokenSalesStore } = useContext(TokenSalesContext);
+  const { tokenSalesStore, salesContractStore } = useContext(TokenSalesContext);
   const { tokenContract, tokenStore, tokenState } = tokenSalesStore;
   const [startCountdown, setStartCountdown] = useState();
   const [saleCountDown, setSaleCountdown] = useState();
   const [graceCountdown, setGraceCountdown] = useState();
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await tokenSalesStore.initContract();
-      } catch (error) {
-        console.error("Token Sale Init Contract: ", error);
+  const { saleId } = useParams();
+
+  const getCampaign = async () => {
+    let camp = null;
+    try {
+      camp = await salesContractStore.getCampaign(parseInt(saleId, 10));
+      if (camp) {
+        await tokenSalesStore.fetchContractStatus(camp.sale_contract);
       }
-    };
-    console.log("Token Sale Init Contract: ", tokenStore.accountId);
-    if (tokenStore.accountId) {
-      init();
+    } catch (error) {
+      console.error("Token Sale Init Contract: ", error);
+    }
+    return camp;
+  };
+
+  const init = async (contractId) => {
+    try {
+      await salesContractStore.initSalesContract();
+      await tokenSalesStore.initContract(contractId);
+    } catch (error) {
+      console.error("Token Sale Init Contract: ", error);
+    }
+  };
+
+  useEffect(async () => {
+    let campaign = null;
+
+    if (saleId) {
+      tokenSalesStore.setAccountId(saleId);
+      campaign = await getCampaign();
+    }
+    if (tokenStore.accountId && campaign) {
+      init(campaign.sale_contract);
     }
   }, [tokenStore.accountId]);
 
@@ -126,10 +149,10 @@ const TokenSalesContainer = () => {
         </SuiBox>
         <SuiBox mb={3}>
           <Grid container spacing={3}>
-            <Grid item xs={12} lg={7}>
+            <Grid item xs={12} lg={6}>
               <TokenSalesForm />
             </Grid>
-            <Grid item xs={12} lg={5}>
+            <Grid item xs={12} lg={6}>
               <TokenInfo />
               <SalesRules />
             </Grid>

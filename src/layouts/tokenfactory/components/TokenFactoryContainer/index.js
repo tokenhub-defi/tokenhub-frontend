@@ -36,37 +36,15 @@ const TokenFactoryContainer = () => {
     return status;
   };
   useEffect(async () => {
-    // eslint-disable-next-line no-debugger
-    debugger;
+    const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
+    tokenFactoryStore.setAllTokens(lstAllTokens);
+
     if (tokenStore.accountId) {
       await tokenFactoryStore.initContract();
       try {
-        // const lst = await Promise.all([
-        //   tokenFactoryStore.getListToken(),
-        //   tokenFactoryStore.getListAllTokens(),
-        // ]);
-
-        // if (lst) {
-        //   if (lst?.length > 0) {
-        //     const lstMyToken = lst[0];
-        //     const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        //     tokenFactoryStore.setRegisteredTokens(mergeLst);
-        //   }
-
-        //   if (lst?.length > 1) tokenFactoryStore.setAllTokens(lst[1]);
-        // }
-        // const lstMyTokens = await tokenFactoryStore.getListToken();
-        // if (lstMyTokens?.length > 0) {
-        //   const lstMyToken = lstMyTokens;
-        //   const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        //   tokenFactoryStore.setRegisteredTokens(mergeLst);
-        // }
-
-        const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
         const lstMyToken = lstAllTokens.filter((t) => t.creator === tokenStore.accountId);
         const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
         tokenFactoryStore.setRegisteredTokens(mergeLst);
-        tokenFactoryStore.setAllTokens(lstAllTokens);
       } catch (error) {
         console.log(error);
       }
@@ -74,11 +52,7 @@ const TokenFactoryContainer = () => {
   }, [tokenStore.accountId]);
 
   useEffect(async () => {
-    // eslint-disable-next-line no-debugger
-    debugger;
     if (tokenFactoryStore.contract) {
-      // eslint-disable-next-line no-debugger
-      // debugger;
       // let token = localStorage.getItem(LOCAL_STORAGE_CURRENT_TOKEN);
       let token;
       if (window.location.search && window.location.search.includes("transactionHashes")) {
