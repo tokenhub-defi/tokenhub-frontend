@@ -169,12 +169,7 @@ export class TokenFactoryStore {
       const clonedI = i;
       clonedI.enoughStorage = enoughStorage
       return clonedI
-      // i.enoughStorage = enoughStorage;
     })
-    if (this.registeredTokens.length > 0) {
-      console.log(this.registeredTokens[0].enoughStorage);
-    }
-
     this.registeredTokens = lst;
     this.remapTokenList();
   };
@@ -360,9 +355,9 @@ export class TokenFactoryStore {
   }
 
   claim = async (token) => {
-    const deployercontract = await this.inittokencontract(token.ft_deployer, [], ["claim"]);
+    const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
     try {
-        const res = await deployercontract.claim({}, this.default_gas);
+        const res = await deployerContract.claim({}, this.DEFAULT_GAS);
         return res;
     } catch (error) {
       console.log("claim : ", error);
