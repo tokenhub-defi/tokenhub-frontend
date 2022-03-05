@@ -39,6 +39,10 @@ const MyTokenContainer = () => {
   const handleClaim = async (e) => {
     await tokenFactoryStore.claim(e);
   };
+
+  const handleStorageDeposit = async (e) => {
+    await tokenFactoryStore.storageDeposit(e);
+  };
   useEffect(async () => {
     let isProgress = false;
     const getListAllTokenContracts = async () => {
@@ -98,16 +102,27 @@ const MyTokenContainer = () => {
                   <AutorenewOutlined sx={{ marginRight: 1 }} /> Resume
                 </SuiButton>
               )}
-              {t.allocation_initialized === 1 && t.claimable_amount !== "0" && (
-                <SuiButton variant="gradient" color="primary" onClick={() => handleClaim(t)}>
-                  <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
+            {!t.enoughStorage &&
+                <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
+                  Add your token to near wallet
                 </SuiButton>
-              )}
-              {t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
-                <SuiButton disabled variant="gradient" color="success">
-                  <CheckCircleOutlined sx={{ marginRight: 1 }} />
-                </SuiButton>
-              )}
+            }
+
+            {t.enoughStorage &&
+             (t.allocation_initialized === 1 && t.claimable_amount !== "0" && (
+                  <SuiButton variant="gradient" color="primary" onClick={() => handleClaim(t)}>
+                    <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
+                  </SuiButton>
+             ))
+            }
+
+            {t.enoughStorage &&
+              (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
+                  <SuiButton disabled variant="gradient" color="success">
+                    <CheckCircleOutlined sx={{ marginRight: 1 }} />
+                  </SuiButton>
+              ))
+             }
             </SuiBox>
           ),
         },

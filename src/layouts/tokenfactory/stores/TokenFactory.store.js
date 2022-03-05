@@ -161,6 +161,20 @@ export class TokenFactoryStore {
   };
 
   setRegisteredTokens = (lst) => {
+    lst.map( async (i) => {
+      const enoughStorage = await this.enoughStorage(i);
+
+      console.log(enoughStorage);
+      console.log(i)
+      const clonedI = i;
+      clonedI.enoughStorage = enoughStorage
+      return clonedI
+      // i.enoughStorage = enoughStorage;
+    })
+    if (this.registeredTokens.length > 0) {
+      console.log(this.registeredTokens[0].enoughStorage);
+    }
+
     this.registeredTokens = lst;
     this.remapTokenList();
   };
@@ -304,33 +318,54 @@ export class TokenFactoryStore {
     return null;
   };
 
-  claim = async (token) => {
+  enoughStorage = async (token) => {
     const tokenContract = await this.initTokenContract(
       token.ft_contract,
       ["ft_metadata", "ft_balance_of", "storage_balance_of"],
       ["ft_transfer", "storage_deposit"]
     );
-    const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
+
     try {
       if (tokenContract) {
-        let storageDeposit = await tokenContract.storage_balance_of({
+        const storageDeposit = await tokenContract.storage_balance_of({
           account_id: this.tokenStore.accountId,
         });
-        if (storageDeposit === null) {
-          storageDeposit = await tokenContract.storage_deposit(
+        return storageDeposit;
+      }
+    } catch (error) {
+      console.log("EnoughStorage ", error);
+      return false
+    }
+    return false
+  }
+
+  storageDeposit = async (token) => {
+    const tokenContract = await this.initTokenContract(
+      token.ft_contract,
+      ["ft_metadata", "ft_balance_of", "storage_balance_of"],
+      ["ft_transfer", "storage_deposit"]
+    );
+    try {
+      if (tokenContract) {
+        await tokenContract.storage_deposit(
             {},
             this.DEFAULT_GAS,
             this.tokenStore.nearUtils.format.parseNearAmount(
               this.DEFAULT_STORAGE_DEPOSIT.toString()
             )
-          );
-          // console.log(storageDeposit);
-        }
-        const res = await deployerContract.claim({}, this.DEFAULT_GAS);
-        return res;
-      }
+          );      }
     } catch (error) {
-      console.log("Claim : ", error);
+      console.log("claim : ", error);
+    }
+  }
+
+  claim = async (token) => {
+    const deployercontract = await this.inittokencontract(token.ft_deployer, [], ["claim"]);
+    try {
+        const res = await deployercontract.claim({}, this.default_gas);
+        return res;
+    } catch (error) {
+      console.log("claim : ", error);
     }
     return null;
   };
@@ -494,6 +529,7 @@ export class TokenFactoryStore {
                 accountId: k[0],
                 role: "",
                 initialRelease: alItem.initial_release / 100,
+                enoughStorage: i.enoughStorage,
                 allocatedPercent: alItem.allocated_percent / 100,
                 vestingStartTime: alItem.vesting_start_time / 10 ** 6,
                 vestingEndTime: alItem.vesting_end_time / 10 ** 6,
