@@ -108,7 +108,11 @@ const MyTokenContainer = () => {
               )}
             {!t.enoughStorage &&
                 <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
+<<<<<<< HEAD
+                  Add token to wallet
+=======
                   Add your token to near wallet
+>>>>>>> 2e453a6 (Storage deposit action)
                 </SuiButton>
             }
 
@@ -121,6 +125,17 @@ const MyTokenContainer = () => {
             }
 
             {t.enoughStorage &&
+<<<<<<< HEAD
+             (t.allocation_initialized === 1 && t.claimable_amount === "0" && (
+                  <SuiButton disabled variant="gradient" color="primary" onClick={() => handleClaim(t)}>
+                    <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
+                  </SuiButton>
+             ))
+            }
+
+            {t.enoughStorage &&
+=======
+>>>>>>> 2e453a6 (Storage deposit action)
               (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
                   <SuiButton disabled variant="gradient" color="success">
                     <CheckCircleOutlined sx={{ marginRight: 1 }} />
