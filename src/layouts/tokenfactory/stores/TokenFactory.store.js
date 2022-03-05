@@ -7,6 +7,8 @@ import moment from "moment";
 import { Contract, providers } from "near-api-js";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "../constants/TokenFactory";
 
+export const TREASURY_ACCOUNT = "treasury.tokenhub.testnet";
+
 export const TOKEN_FACTORY_STEP = {
   REGISTER: "register",
   CREATE_FT_CONTRACT: "create_ft_contract",
@@ -15,6 +17,36 @@ export const TOKEN_FACTORY_STEP = {
   INIT_TOKEN_ALLOCATION: "init_token_allocation",
 };
 
+export class Allocation {
+  id = "";
+
+  accountId = "";
+
+  allocatedPercent = 15;
+
+  initialRelease = 8;
+
+  vestingStartTime = new Date();
+
+  vestingEndTime = moment().add(30, "day");
+
+  vestingInterval = 1;
+
+  vestingDuration = 4;
+
+  isAccountExisted = true;
+
+  constructor() {
+    makeObservable(this, {
+      accountId: observable,
+      initialRelease: observable,
+      allocatedPercent: observable,
+      vestingStartTime: observable,
+      vestingEndTime: observable,
+      vestingInterval: observable,
+    });
+  }
+}
 export class Token {
   // tokenFactoryConfig = getTokenFactoryConfig(process.env.NODE_ENV || "development");
   icon = null;
@@ -27,17 +59,7 @@ export class Token {
 
   decimal = 8;
 
-  initialRelease = 15;
-
-  treasury = 8;
-
-  vestingStartTime = new Date();
-
-  vestingEndTime = moment().add(30, "day");
-
-  vestingInterval = 1;
-
-  vestingDuration = 4;
+  allocationList = [];
 
   constructor() {
     makeObservable(this, {
@@ -46,11 +68,7 @@ export class Token {
       symbol: observable,
       initialSupply: observable,
       decimal: observable,
-      initialRelease: observable,
-      treasury: observable,
-      vestingStartTime: observable,
-      vestingEndTime: observable,
-      vestingInterval: observable,
+      allocationList: observable,
     });
   }
 }
@@ -132,6 +150,8 @@ export class TokenFactoryStore {
       checkExistenceToken: action,
       getListToken: action,
       getListAllTokenContracts: action,
+
+      setAllocations: action,
       registerParams: computed,
     });
   }
@@ -175,7 +195,7 @@ export class TokenFactoryStore {
       );
       this.contract = contract;
     } catch (error) {
-      console.log(error);
+      console.log("initContract", error);
     }
   };
 
@@ -184,62 +204,93 @@ export class TokenFactoryStore {
   };
 
   register = async () => {
-    this.activeStep = 0;
-    // console.log(this.contract);
-    // localStorage.setItem(LOCAL_STORAGE_CURRENT_TOKEN, JSON.stringify(this.token));
-    const value = await this.contract.register(
-      this.registerParams,
-      this.DEFAULT_GAS,
-      this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_NEAR_AMOUNT)
-    );
-    // console.log("register : ", value);
-    return value;
+    try {
+      this.activeStep = 0;
+      // console.log(this.contract);
+      // localStorage.setItem(LOCAL_STORAGE_CURRENT_TOKEN, JSON.stringify(this.token));
+      const value = await this.contract.register(
+        this.registerParams,
+        this.DEFAULT_GAS,
+        this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_NEAR_AMOUNT)
+      );
+      // console.log("register : ", value);
+      return value;
+    } catch (error) {
+      console.error("register", error);
+    }
+    return null;
   };
 
   createContract = async () => {
-    this.activeStep = 1;
-    const value = await this.contract.create_ft_contract(this.registerParams, this.DEFAULT_GAS);
-    // console.log("create_ft_contract : ", value);
-    const current = { ...{}, ...this.registerParams };
-    current.create_ft_contract = value;
-    this.appendRegisteredToken(current);
-    return value;
+    try {
+      this.activeStep = 1;
+      const value = await this.contract.create_ft_contract(this.registerParams, this.DEFAULT_GAS);
+      // console.log("create_ft_contract : ", value);
+      const current = { ...{}, ...this.registerParams };
+      current.create_ft_contract = value;
+      this.appendRegisteredToken(current);
+      console.log("createContract", value);
+      return value;
+    } catch (error) {
+      console.error("createContract", error);
+    }
+    return null;
   };
 
   createDeployerContract = async () => {
-    this.activeStep = 2;
-    const value = await this.contract.create_deployer_contract(
-      this.registerParams,
-      this.DEFAULT_GAS
-    );
-    // console.log("create_deployer_contract : ", value);
-    const current = { ...{}, ...this.registerParams };
-    current.create_deployer_contract = value;
-    this.appendRegisteredToken(current);
-    return value;
+    try {
+      this.activeStep = 2;
+      const value = await this.contract.create_deployer_contract(
+        this.registerParams,
+        this.DEFAULT_GAS
+      );
+      // console.log("create_deployer_contract : ", value);
+      const current = { ...{}, ...this.registerParams };
+      current.create_deployer_contract = value;
+      this.appendRegisteredToken(current);
+      console.log("createDeployerContract", value);
+      return value;
+    } catch (error) {
+      console.error("createDeployerContract", error);
+    }
+    return null;
   };
 
   issue = async () => {
-    this.activeStep = 3;
-    const value = await this.contract.issue_ft(this.registerParams, this.DEFAULT_GAS);
-    // console.log("issue_ft : ", value);
-    const current = { ...{}, ...this.registerParams };
-    current.issue_ft = value;
-    this.appendRegisteredToken(current);
-    return value;
+    try {
+      this.activeStep = 3;
+      const value = await this.contract.issue_ft(this.registerParams, this.DEFAULT_GAS);
+      // console.log("issue_ft : ", value);
+      const current = { ...{}, ...this.registerParams };
+      current.issue_ft = value;
+      this.appendRegisteredToken(current);
+      console.log("issue", value);
+      return value;
+    } catch (error) {
+      console.error("issue", error);
+    }
+    return null;
   };
 
   initTokenAllocation = async () => {
-    this.activeStep = 4;
-    const value = await this.contract.init_token_allocation(this.registerParams, this.DEFAULT_GAS);
-    // console.log("init_token_allocation : ", value);
-    const current = { ...{}, ...this.registerParams };
-    current.init_token_allocation = value;
-    this.appendRegisteredToken(current);
-    this.setToken(new Token());
-    // this.clearLocalStorageToken();
-    this.activeStep = -1;
-    return value;
+    try {
+      this.activeStep = 4;
+      const value = await this.contract.init_token_allocation(
+        this.registerParams,
+        this.DEFAULT_GAS
+      );
+      // console.log("init_token_allocation : ", value);
+      const current = { ...{}, ...this.registerParams };
+      current.init_token_allocation = value;
+      this.appendRegisteredToken(current);
+      // this.clearLocalStorageToken();
+      this.activeStep = -1;
+      console.log("initTokenAllocation", value);
+      return value;
+    } catch (error) {
+      console.error("initTokenAllocation", error);
+    }
+    return null;
   };
 
   getTokenState = async (token) => {
@@ -341,38 +392,68 @@ export class TokenFactoryStore {
   };
 
   getListAllTokenContracts = async () => {
-    const value = await this.tokenStore.callViewMethod(
-      this.tokenStore.nearConfig.contractName,
-      "list_all_token_contracts"
-    );
-    let start = 0;
-    const length = 50;
-    const promises = [];
-    let finalList = [];
-    // console.log("getListAllTokenContracts :", value);
-    if (value) {
-      while (start < value.length) {
-        // console.log(start);
-        const stateLst = value.slice(start, start + length);
-        promises.push(
-          this.tokenStore.callViewMethod(
-            this.tokenStore.nearConfig.contractName,
-            "list_token_states",
-            {
-              token_contracts: stateLst,
+    try {
+      const value = await this.tokenStore.callViewMethod(
+        this.tokenStore.nearConfig.contractName,
+        "list_all_token_contracts"
+      );
+      let start = 0;
+      const length = 50;
+      const promises = [];
+      let finalList = [];
+      // console.log("getListAllTokenContracts :", value);
+      if (value) {
+        while (start < value.length) {
+          // console.log(start);
+          const stateLst = value.slice(start, start + length);
+          promises.push(
+            this.tokenStore.callViewMethod(
+              this.tokenStore.nearConfig.contractName,
+              "list_token_states",
+              {
+                token_contracts: stateLst,
+              }
+            )
+          );
+          start += length;
+        }
+
+        let data = await Promise.allSettled(promises);
+        data = data.filter((d) => d.status === "fulfilled").map((d) => d.value);
+        const emptyMetadata = [];
+        // data.forEach((d) => {
+        //   const eItem = d.filter((e) => e.ft_metadata === null);
+        //   emptyMetadata = [...emptyMetadata, ...eItem];
+        // });
+        // if (emptyMetadata?.length) {
+        //   const promiseGetMetadata = emptyMetadata.map((em) =>
+        //     this.tokenStore.callViewMethod(em.ft_contract, "ft_metadata")
+        //   );
+        //   const metadata = await Promise.allSettled(promiseGetMetadata);
+        //   console.log("metadata", metadata);
+        //   metadata.forEach((md, index) => {
+        //     if (md.status === "fulfilled") {
+        //       emptyMetadata[index].ft_metadata = md.value;
+        //     }
+        //   });
+        //   console.log("metadata", metadata);
+        // }
+        data.forEach((element) => {
+          const remapElement = element.map((e) => {
+            if (!e.ft_metadata) {
+              const metadata = emptyMetadata.find((em) => em.ft_contract === e.ft_contract);
+              if (metadata) e.ft_metadata = metadata;
             }
-          )
-        );
-        start += length;
+            return { ...e, ...e.ft_metadata };
+          });
+          finalList = [...finalList, ...remapElement];
+        });
+
+        // console.log("list_token_states", finalList);
+        return finalList;
       }
-
-      const data = await Promise.all(promises);
-      data.forEach((element) => {
-        finalList = [...finalList, ...element];
-      });
-
-      // console.log("list_token_states", finalList);
-      return finalList;
+    } catch (error) {
+      console.log("getListAllTokenContracts", error);
     }
     return null;
   };
@@ -403,73 +484,106 @@ export class TokenFactoryStore {
           };
           lstPromises.push(deployerPromise());
         });
-        const result = await Promise.all(lstPromises);
-        // console.log(result);
+        const result = await Promise.allSettled(lstPromises);
+        console.log("getDeployerState", result);
 
         // const unClaimed = result.filter((r) => r.claimed === "0");
 
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < lst.length; i++) {
-          merge.push({ ...lst[i], ...result[i] });
+          if (result[i].status === "fulfilled") merge.push({ ...lst[i], ...result[i].value });
         }
       } catch (error) {
-        console.log(error);
+        console.log("getDeployerState", error);
       }
     }
     return merge;
   };
 
+  setAllocations = (allocations) => {
+    this.token.allocationList = allocations;
+  };
+
   remapTokenList = () => {
     try {
-      this.registeredTokens = this.registeredTokens.map((i) => ({
-        ...i,
-        ...{
-          tokenName: i.token_name,
-          symbol: i.symbol,
-          initialSupply: i.total_supply / 10 ** this.token.decimal,
-          decimal: i.decimals,
-          initialRelease: (i.initial_release / i.total_supply) * 100,
-          treasury: (i.treasury_allocation / i.total_supply) * 100,
-          vestingStartTime: i.vesting_start_time / 10 ** 6,
-          vestingEndTime: i.vesting_end_time / 10 ** 6,
-          vestingInterval: i.vesting_interval / (24 * 3600 * 10 ** 9),
-          vestingDuration: Math.round(
-            (moment(i.vesting_end_time / 10 ** 6) - moment(i.vesting_start_time / 10 ** 6)) /
-              (10 ** 3 * 24 * 3600)
-          ),
-        },
-      }));
+      this.registeredTokens = this.registeredTokens.map((i) => {
+        // Map allocation list
+        const allocationList = [];
+
+        if (i.allocations) {
+          i.allocations.forEach((k) => {
+            let alItem = k[1];
+            alItem = {
+              ...alItem,
+              ...{
+                id: new Date().getTime(),
+                accountId: k[0],
+                role: "",
+                initialRelease: alItem.initial_release / 100,
+                allocatedPercent: alItem.allocated_percent / 100,
+                vestingStartTime: alItem.vesting_start_time / 10 ** 6,
+                vestingEndTime: alItem.vesting_end_time / 10 ** 6,
+                vestingInterval: alItem.vesting_interval / (24 * 3600 * 10 ** 9),
+                vestingDuration: Math.round(
+                  (moment(alItem.vesting_end_time / 10 ** 6) -
+                    moment(alItem.vesting_start_time / 10 ** 6)) /
+                    (10 ** 3 * 24 * 3600)
+                ),
+              },
+            };
+            if (this.tokenStore.accountId && k === this.tokenStore.accountId)
+              alItem.role = "Creator";
+            if (k === TREASURY_ACCOUNT) alItem.role = "Treasury";
+            allocationList.push(alItem);
+          });
+        }
+
+        // Create token item
+        const item = {
+          ...i,
+          ...{
+            tokenName: i.token_name,
+            symbol: i.symbol,
+            initialSupply: i.total_supply / 10 ** this.token.decimal,
+            decimal: i.decimals,
+            allocationList,
+          },
+        };
+        return item;
+      });
     } catch (error) {
       console.log(error);
     }
   };
 
   get registerParams() {
+    const allocations = {};
+
+    this.token.allocationList.forEach((al) => {
+      allocations[al.accountId] = {
+        ...al,
+        ...{
+          allocated_percent: al.allocatedPercent * 100,
+          initial_release: al.initialRelease * 100,
+          vesting_start_time: (moment(al.vestingStartTime).unix() * 10 ** 9).toString(),
+          vesting_end_time: (
+            moment(al.vestingStartTime).add(al.vestingDuration, "days").unix() *
+            10 ** 9
+          ).toString(),
+          vesting_interval: (al.vestingInterval * 24 * 3600 * 10 ** 9).toString(),
+        },
+      };
+    });
+
     return {
       icon: this.token.icon,
-      ft_contract: `${this.token.symbol}.token-factory.tokenhub.testnet`.toLowerCase(),
-      deployer_contract:
-        `${this.token.symbol}-deployer.token-factory.tokenhub.testnet`.toLowerCase(),
+      ft_contract: `${this.token.symbol}.tokenhub.testnet`.toLowerCase(),
+      deployer_contract: `${this.token.symbol}-deployer.tokenhub.testnet`.toLowerCase(),
       total_supply: (this.token.initialSupply * 10 ** this.token.decimal).toString(),
       token_name: this.token.tokenName,
       symbol: this.token.symbol,
       decimals: this.token.decimal,
-      initial_release: (
-        this.token.initialSupply *
-        10 ** this.token.decimal *
-        (this.token.initialRelease / 100)
-      ).toString(),
-      treasury_allocation: (
-        this.token.initialSupply *
-        10 ** this.token.decimal *
-        (this.token.treasury / 100)
-      ).toString(),
-      vesting_start_time: (moment(this.token.vestingStartTime).unix() * 10 ** 9).toString(),
-      vesting_end_time: (
-        moment(this.token.vestingStartTime).add(this.token.vestingDuration, "days").unix() *
-        10 ** 9
-      ).toString(),
-      vesting_interval: (this.token.vestingInterval * 24 * 3600 * 10 ** 9).toString(),
+      allocations,
     };
   }
 
