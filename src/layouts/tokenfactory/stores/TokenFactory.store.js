@@ -171,7 +171,6 @@ export class TokenFactoryStore {
       const clonedI = i;
       clonedI.enoughStorage = enoughStorage
       return clonedI
-      // i.enoughStorage = enoughStorage;
     })
 
     this.registeredTokens = await Promise.all(promiseArray);
