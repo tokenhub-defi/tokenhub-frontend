@@ -7,7 +7,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 // import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import { observer } from "mobx-react";
-import { useContext, useEffect, useReducer, useState } from "react";
+import { useContext, useEffect, useReducer } from "react";
 // import { useContext } from "react";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "layouts/tokenfactory/constants/TokenFactory";
 import SuiAlert from "components/SuiAlert";
@@ -41,8 +41,6 @@ const TokenFactoryContainer = () => {
     color: "error",
   });
 
-  const [isContinue, setIsContinue] = useState(false);
-
   const initNewToken = () => {
     const token = { ...newToken };
     // Add treasury allocation
@@ -74,38 +72,100 @@ const TokenFactoryContainer = () => {
     token.allocationList = [creator, treasury];
     setNewToken(token);
   };
-  useEffect(async () => {
-    const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
-    tokenFactoryStore.setAllTokens(lstAllTokens);
-  }, []);
-  useEffect(async () => {
-    if (!_.isEmpty(tokenStore.accountId)) {
-      initNewToken();
-      try {
-        const lstMyToken = tokenFactoryStore.allTokens.filter(
-          (t) => t.creator === tokenStore.accountId
-        );
-        const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        tokenFactoryStore.setRegisteredTokens(mergeLst);
-        if (!tokenFactoryStore.contract) await tokenFactoryStore.initContract();
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  }, [tokenStore.accountId]);
 
   useEffect(() => {
     tokenFactoryStore.setToken(newToken);
   }, [newToken]);
 
-  useEffect(async () => {
+  const handleDoTokenResume = async (token) => {
+    if (!_.isEmpty(token.symbol)) {
+      const queryParams = new URLSearchParams(location.search);
+
+      try {
+        const tokenState = await tokenFactoryStore.getTokenState(token);
+        if (tokenState) {
+          tokenFactoryStore.appendRegisteredToken({ ...tokenState, ...token });
+          const {
+            ft_contract_deployed,
+            deployer_contract_deployed,
+            ft_issued,
+            allocation_initialized,
+          } = tokenState;
+          console.log("Token state", tokenState);
+
+          if (ft_contract_deployed === 0) {
+            setAlert({
+              open: true,
+              message: "Creating contract ...",
+              color: "primary",
+            });
+            await tokenFactoryStore.createContract();
+            // ft_contract_deployed = res != null ? 1 : 0;
+          }
+          if (deployer_contract_deployed === 0) {
+            setAlert({
+              open: true,
+              message: "Creating deployer contract ...",
+              color: "primary",
+            });
+            await tokenFactoryStore.createDeployerContract();
+            // deployer_contract_deployed = res != null ? 1 : 0;
+          }
+          if (ft_issued === 0) {
+            setAlert({
+              open: true,
+              message: "Issuing ...",
+              color: "primary",
+            });
+            await tokenFactoryStore.issue();
+            // ft_issued = res != null ? 1 : 0;
+          }
+          if (allocation_initialized === 0) {
+            setAlert({
+              open: true,
+              message: "Initiating token allocation ...",
+              color: "primary",
+            });
+            const res = await tokenFactoryStore.initTokenAllocation();
+            if (res) {
+              initNewToken();
+              // allocation_initialized = 1;
+              queryParams.delete("resume_token");
+              queryParams.delete("transactionHashes");
+              history.replace({
+                search: queryParams.toString(),
+              });
+
+              setAlert({
+                open: true,
+                message: "Create Token Success",
+                color: "success",
+              });
+            }
+          }
+        }
+      } catch (error) {
+        if (error?.type !== "NotEnoughAllowance")
+          setAlert({
+            open: true,
+            message: error.message,
+            color: "error",
+          });
+        console.log(error);
+        console.log(error.type);
+      }
+    }
+  };
+
+  const handleResumeToken = async (contract) => {
     const queryParams = new URLSearchParams(location.search);
     const resumeToken = queryParams.get("resume_token");
     const transactionHash = queryParams.get("transactionHashes");
-    if (tokenFactoryStore.contract) {
+    let token = null;
+    let isContinuesProgress = false;
+    if (contract) {
       // let token = localStorage.getItem(LOCAL_STORAGE_CURRENT_TOKEN);
-      let token;
-      if (!_.isEmpty(resumeToken) || !_.isEmpty(transactionHash)) setIsContinue(true);
+
       if (!_.isEmpty(transactionHash)) {
         const result = await tokenFactoryStore.getTransactionStatus(transactionHash);
         if (result.status?.SuccessValue != null) {
@@ -149,96 +209,49 @@ const TokenFactoryContainer = () => {
             };
           }
         }
+        isContinuesProgress = true;
         setNewToken(token);
-        console.log("TokenHash", token);
       }
       if (!_.isEmpty(resumeToken)) {
         token = tokenFactoryStore.registeredTokens.find((rt) => rt.symbol === resumeToken);
+        isContinuesProgress = true;
         setNewToken(token);
-        console.log("TokenResume", token);
       }
+      if (isContinuesProgress) await handleDoTokenResume(token);
     }
-  }, [tokenFactoryStore.contract]);
+  };
 
-  useEffect(async () => {
-    if (!_.isEmpty(tokenFactoryStore.token.symbol) && isContinue) {
-      const queryParams = new URLSearchParams(location.search);
-      const { token } = tokenFactoryStore;
-      try {
-        const tokenState = await tokenFactoryStore.getTokenState(token);
-        if (tokenState) {
-          tokenFactoryStore.appendRegisteredToken({ ...tokenState, ...token });
-          let {
-            ft_contract_deployed,
-            deployer_contract_deployed,
-            ft_issued,
-            allocation_initialized,
-          } = tokenState;
-          console.log("Token state", tokenState);
+  useEffect(() => {
+    let isProgress = false;
+    const getListAllTokenContracts = async () => {
+      if (!isProgress) {
+        const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
+        tokenFactoryStore.setAllTokens(lstAllTokens);
+      }
+    };
 
-          if (ft_contract_deployed === 0) {
-            setAlert({
-              open: true,
-              message: "Creating contract ...",
-              color: "primary",
-            });
-            const res = await tokenFactoryStore.createContract();
-            ft_contract_deployed = res != null ? 1 : 0;
-          }
-          if (deployer_contract_deployed === 0) {
-            setAlert({
-              open: true,
-              message: "Creating deployer contract ...",
-              color: "primary",
-            });
-            const res = await tokenFactoryStore.createDeployerContract();
-            deployer_contract_deployed = res != null ? 1 : 0;
-          }
-          if (ft_issued === 0) {
-            setAlert({
-              open: true,
-              message: "Issuing ...",
-              color: "primary",
-            });
-            const res = await tokenFactoryStore.issue();
-            ft_issued = res != null ? 1 : 0;
-          }
-          if (allocation_initialized === 0) {
-            setAlert({
-              open: true,
-              message: "Initiating token allocation ...",
-              color: "primary",
-            });
-            const res = await tokenFactoryStore.initTokenAllocation();
-            if (res) {
-              initNewToken();
-              allocation_initialized = 1;
-              queryParams.delete("resume_token");
-              queryParams.delete("transactionHashes");
-              history.replace({
-                search: queryParams.toString(),
-              });
-
-              setAlert({
-                open: true,
-                message: "Create Token Success",
-                color: "success",
-              });
-            }
-          }
+    const init = async () => {
+      await getListAllTokenContracts();
+      if (!_.isEmpty(tokenStore.accountId) && !isProgress) {
+        initNewToken();
+        try {
+          const lstMyToken = tokenFactoryStore.allTokens.filter(
+            (t) => t.creator === tokenStore.accountId
+          );
+          const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
+          tokenFactoryStore.setRegisteredTokens(mergeLst);
+          const contract = await tokenFactoryStore.initContract();
+          await handleResumeToken(contract);
+        } catch (error) {
+          console.log(error);
         }
-      } catch (error) {
-        if (error?.type !== "NotEnoughAllowance")
-          setAlert({
-            open: true,
-            message: error.message,
-            color: "error",
-          });
-        console.log(error);
-        console.log(error.type);
       }
-    }
-  }, [tokenFactoryStore.token]);
+    };
+    init();
+    return () => {
+      isProgress = true;
+    };
+  }, [tokenStore.accountId]);
 
   return (
     <DashboardLayout>

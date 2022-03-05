@@ -194,9 +194,11 @@ export class TokenFactoryStore {
         }
       );
       this.contract = contract;
+      return contract;
     } catch (error) {
       console.log("initContract", error);
     }
+    return null;
   };
 
   setToken = (obj) => {
@@ -204,93 +206,65 @@ export class TokenFactoryStore {
   };
 
   register = async () => {
-    try {
-      this.activeStep = 0;
-      // console.log(this.contract);
-      // localStorage.setItem(LOCAL_STORAGE_CURRENT_TOKEN, JSON.stringify(this.token));
-      const value = await this.contract.register(
-        this.registerParams,
-        this.DEFAULT_GAS,
-        this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_NEAR_AMOUNT)
-      );
-      // console.log("register : ", value);
-      return value;
-    } catch (error) {
-      console.error("register", error);
-    }
-    return null;
+    this.activeStep = 0;
+    // console.log(this.contract);
+    // localStorage.setItem(LOCAL_STORAGE_CURRENT_TOKEN, JSON.stringify(this.token));
+    const value = await this.contract.register(
+      this.registerParams,
+      this.DEFAULT_GAS,
+      this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_NEAR_AMOUNT)
+    );
+    // console.log("register : ", value);
+    return value;
   };
 
   createContract = async () => {
-    try {
-      this.activeStep = 1;
-      const value = await this.contract.create_ft_contract(this.registerParams, this.DEFAULT_GAS);
-      // console.log("create_ft_contract : ", value);
-      const current = { ...{}, ...this.registerParams };
-      current.create_ft_contract = value;
-      this.appendRegisteredToken(current);
-      console.log("createContract", value);
-      return value;
-    } catch (error) {
-      console.error("createContract", error);
-    }
-    return null;
+    this.activeStep = 1;
+    const value = await this.contract.create_ft_contract(this.registerParams, this.DEFAULT_GAS);
+    // console.log("create_ft_contract : ", value);
+    const current = { ...{}, ...this.registerParams };
+    current.create_ft_contract = value;
+    this.appendRegisteredToken(current);
+    console.log("createContract", value);
+    return value;
   };
 
   createDeployerContract = async () => {
-    try {
-      this.activeStep = 2;
-      const value = await this.contract.create_deployer_contract(
-        this.registerParams,
-        this.DEFAULT_GAS
-      );
-      // console.log("create_deployer_contract : ", value);
-      const current = { ...{}, ...this.registerParams };
-      current.create_deployer_contract = value;
-      this.appendRegisteredToken(current);
-      console.log("createDeployerContract", value);
-      return value;
-    } catch (error) {
-      console.error("createDeployerContract", error);
-    }
-    return null;
+    this.activeStep = 2;
+    const value = await this.contract.create_deployer_contract(
+      this.registerParams,
+      this.DEFAULT_GAS
+    );
+    // console.log("create_deployer_contract : ", value);
+    const current = { ...{}, ...this.registerParams };
+    current.create_deployer_contract = value;
+    this.appendRegisteredToken(current);
+    console.log("createDeployerContract", value);
+    return value;
   };
 
   issue = async () => {
-    try {
-      this.activeStep = 3;
-      const value = await this.contract.issue_ft(this.registerParams, this.DEFAULT_GAS);
-      // console.log("issue_ft : ", value);
-      const current = { ...{}, ...this.registerParams };
-      current.issue_ft = value;
-      this.appendRegisteredToken(current);
-      console.log("issue", value);
-      return value;
-    } catch (error) {
-      console.error("issue", error);
-    }
-    return null;
+    this.activeStep = 3;
+    const value = await this.contract.issue_ft(this.registerParams, this.DEFAULT_GAS);
+    // console.log("issue_ft : ", value);
+    const current = { ...{}, ...this.registerParams };
+    current.issue_ft = value;
+    this.appendRegisteredToken(current);
+    console.log("issue", value);
+    return value;
   };
 
   initTokenAllocation = async () => {
-    try {
-      this.activeStep = 4;
-      const value = await this.contract.init_token_allocation(
-        this.registerParams,
-        this.DEFAULT_GAS
-      );
-      // console.log("init_token_allocation : ", value);
-      const current = { ...{}, ...this.registerParams };
-      current.init_token_allocation = value;
-      this.appendRegisteredToken(current);
-      // this.clearLocalStorageToken();
-      this.activeStep = -1;
-      console.log("initTokenAllocation", value);
-      return value;
-    } catch (error) {
-      console.error("initTokenAllocation", error);
-    }
-    return null;
+    this.activeStep = 4;
+    const value = await this.contract.init_token_allocation(this.registerParams, this.DEFAULT_GAS);
+    // console.log("init_token_allocation : ", value);
+    const current = { ...{}, ...this.registerParams };
+    current.init_token_allocation = value;
+    this.appendRegisteredToken(current);
+    // this.clearLocalStorageToken();
+    this.activeStep = -1;
+    console.log("initTokenAllocation", value);
+    return value;
   };
 
   getTokenState = async (token) => {

@@ -90,14 +90,20 @@ const CreateToken = (props) => {
   // Validate allocationList
   useEffect(() => {
     let sum = 0;
+    let isSumming = false;
     let isAllAccountFilled = true;
-    token.allocationList.forEach((al) => {
-      sum += parseInt(al.allocatedPercent, 10);
-      if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
-    });
-    console.log("SumAllocation", token.allocationList);
-    console.log("SumAllocation", sum);
-    setIsAllocationValid(sum === 100 && isAllAccountFilled);
+    if (!isSumming) {
+      token.allocationList.forEach((al) => {
+        sum += parseInt(al.allocatedPercent, 10);
+        if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
+      });
+      console.log("SumAllocation", token.allocationList);
+      console.log("SumAllocation", sum);
+      setIsAllocationValid(sum === 100 && isAllAccountFilled);
+    }
+    return () => {
+      isSumming = true;
+    };
   }, [token.allocationList]);
 
   const handleTokenNameChange = (e) => {

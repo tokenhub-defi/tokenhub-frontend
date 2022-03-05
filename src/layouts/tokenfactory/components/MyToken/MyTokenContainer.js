@@ -40,22 +40,33 @@ const MyTokenContainer = () => {
     await tokenFactoryStore.claim(e);
   };
   useEffect(async () => {
-    const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
-    tokenFactoryStore.setAllTokens(lstAllTokens);
-  }, []);
-  useEffect(async () => {
-    if (tokenStore.accountId) {
-      try {
-        const lstMyToken = tokenFactoryStore.allTokens.filter(
-          (t) => t.creator === tokenStore.accountId
-        );
-        const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        tokenFactoryStore.setRegisteredTokens(mergeLst);
-        if (!tokenFactoryStore.contract) await tokenFactoryStore.initContract();
-      } catch (error) {
-        console.log(error);
+    let isProgress = false;
+    const getListAllTokenContracts = async () => {
+      if (!isProgress) {
+        const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
+        tokenFactoryStore.setAllTokens(lstAllTokens);
       }
-    }
+    };
+
+    const init = async () => {
+      await getListAllTokenContracts();
+      if (tokenStore.accountId && !isProgress) {
+        try {
+          const lstMyToken = tokenFactoryStore.allTokens.filter(
+            (t) => t.creator === tokenStore.accountId
+          );
+          const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
+          tokenFactoryStore.setRegisteredTokens(mergeLst);
+          if (!tokenFactoryStore.contract) await tokenFactoryStore.initContract();
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+    init();
+    return () => {
+      isProgress = true;
+    };
   }, [tokenStore.accountId]);
 
   useEffect(() => {
