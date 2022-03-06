@@ -140,17 +140,20 @@ export class TokenFactoryStore {
     this.tokenStore = tokenStore;
   };
 
-  setRegisteredTokens = (lst) => {
-    lst.map( async (i) => {
-      const enoughStorage = await this.enoughStorage(i);
+  setRegisteredTokens = async (lst) => {
+    const promises = lst.map((i) => this.enoughStorage(i));
 
-      console.log(enoughStorage);
-      console.log(i)
-      const clonedI = i;
-      clonedI.enoughStorage = enoughStorage
-      return clonedI
-    })
-    this.registeredTokens = lst;
+    const enoughStorageValue = await Promise.allSettled(promises);
+    console.log(enoughStorageValue);
+    const remapLst = lst.map((lstItem, i) => {
+      const item = { ...lstItem };
+      if (enoughStorageValue[i].status === "fulfilled") {
+        item.enoughStorage = enoughStorageValue[i].value;
+      }
+      return item;
+    });
+
+    this.registeredTokens = remapLst;
     this.remapTokenList();
   };
 
@@ -304,10 +307,10 @@ export class TokenFactoryStore {
       }
     } catch (error) {
       console.log("EnoughStorage ", error);
-      return false
+      return false;
     }
-    return false
-  }
+    return false;
+  };
 
   storageDeposit = async (token) => {
     const tokenContract = await this.initTokenContract(
@@ -318,22 +321,21 @@ export class TokenFactoryStore {
     try {
       if (tokenContract) {
         await tokenContract.storage_deposit(
-            {},
-            this.DEFAULT_GAS,
-            this.tokenStore.nearUtils.format.parseNearAmount(
-              this.DEFAULT_STORAGE_DEPOSIT.toString()
-            )
-          );      }
+          {},
+          this.DEFAULT_GAS,
+          this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
+        );
+      }
     } catch (error) {
       console.log("claim : ", error);
     }
-  }
+  };
 
   claim = async (token) => {
     const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
     try {
-        const res = await deployerContract.claim({}, this.DEFAULT_GAS);
-        return res;
+      const res = await deployerContract.claim({}, this.DEFAULT_GAS);
+      return res;
     } catch (error) {
       console.log("claim : ", error);
     }

@@ -48,13 +48,12 @@ const MyTokenContainer = () => {
 
     tokenFactoryStore.setAllTokens(lstAllTokens);
 
-
     if (tokenStore.accountId) {
       await tokenFactoryStore.initContract();
       try {
         const lstMyToken = lstAllTokens.filter((t) => t.creator === tokenStore.accountId);
         const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        tokenFactoryStore.setRegisteredTokens(mergeLst);
+        await tokenFactoryStore.setRegisteredTokens(mergeLst);
       } catch (error) {
         console.log(error);
       }
@@ -72,7 +71,6 @@ const MyTokenContainer = () => {
             </SuiBox>
           ),
           total_supply: humanize.numberFormat(t.total_supply / 10 ** t.decimals),
-          enough_storage: t.enoughStorage,
           allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
           claimable_amount: humanize.numberFormat(t.claimable_amount / 10 ** t.decimals),
           claimed: humanize.numberFormat(t.claimed / 10 ** t.decimals),
@@ -91,27 +89,27 @@ const MyTokenContainer = () => {
                   <AutorenewOutlined sx={{ marginRight: 1 }} /> Resume
                 </SuiButton>
               )}
-            {t.enoughStorage === null &&
-                <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
+              {!t.enoughStorage && (
+                <SuiButton
+                  variant="gradient"
+                  color="primary"
+                  onClick={() => handleStorageDeposit(t)}
+                >
                   Add your token to near wallet
                 </SuiButton>
-            }
+              )}
 
-            {t.enoughStorage !== null &&
-             (t.allocation_initialized === 1 && t.claimable_amount !== "0" && (
-                  <SuiButton variant="gradient" color="primary" onClick={() => handleClaim(t)}>
-                    <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
-                  </SuiButton>
-             ))
-            }
+              {t.enoughStorage && t.allocation_initialized === 1 && t.claimable_amount !== "0" && (
+                <SuiButton variant="gradient" color="primary" onClick={() => handleClaim(t)}>
+                  <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
+                </SuiButton>
+              )}
 
-            {t.enoughStorage !== null &&
-              (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
-                  <SuiButton disabled variant="gradient" color="success">
-                    <CheckCircleOutlined sx={{ marginRight: 1 }} />
-                  </SuiButton>
-              ))
-             }
+              {t.enoughStorage && t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
+                <SuiButton disabled variant="gradient" color="success">
+                  <CheckCircleOutlined sx={{ marginRight: 1 }} />
+                </SuiButton>
+              )}
             </SuiBox>
           ),
         },

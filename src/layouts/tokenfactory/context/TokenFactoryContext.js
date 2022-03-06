@@ -21,7 +21,7 @@ const TokenFactoryProvider = (props) => {
       try {
         const lstMyToken = lstAllTokens.filter((t) => t.creator === tokenStore.accountId);
         const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        tokenFactoryStore.setRegisteredTokens(mergeLst);
+        await tokenFactoryStore.setRegisteredTokens(mergeLst);
       } catch (error) {
         console.log(error);
       }
