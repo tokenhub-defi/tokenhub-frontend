@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Card, Grid, MenuItem, Select } from "@mui/material";
+import { Card, Grid, MenuItem, Select, Table } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import SuiInput from "components/SuiInput";
@@ -23,7 +23,7 @@ import _ from "lodash";
 import AllocationView from "../Allocation";
 
 const CreateToken = (props) => {
-  const { setAlert, token, setToken } = props;
+  const { setAlert, token, setToken, isResume } = props;
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
   const [vestingStartTime, setVestingStartTime] = useState();
@@ -75,31 +75,34 @@ const CreateToken = (props) => {
   }, [tokenFactoryStore.activeStep]);
 
   useEffect(() => {
-    setTokenValidation(false);
-    setIsAccountExist(false);
-    if (!_.isEmpty(tokenFactoryStore.token.symbol)) {
-      if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
-      window.delayCheckTokenValidation = setTimeout(async () => {
-        const res = await checkTokenValidation();
-        setTokenValidation(res);
-        setIsAccountExist(!res);
-      }, 500);
+    if (!isResume) {
+      setTokenValidation(false);
+      setIsAccountExist(false);
+      if (!_.isEmpty(tokenFactoryStore.token.symbol)) {
+        if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
+        window.delayCheckTokenValidation = setTimeout(async () => {
+          const res = await checkTokenValidation();
+          setTokenValidation(res);
+          setIsAccountExist(!res);
+        }, 500);
+      }
     }
   }, [tokenFactoryStore.token.symbol]);
 
   // Validate allocationList
   useEffect(() => {
-    let sum = 0;
     let isSumming = false;
-    let isAllAccountFilled = true;
-    if (!isSumming) {
-      token.allocationList.forEach((al) => {
-        sum += parseInt(al.allocatedPercent, 10);
-        if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
-      });
-      console.log("SumAllocation", token.allocationList);
-      console.log("SumAllocation", sum);
-      setIsAllocationValid(sum === 100 && isAllAccountFilled);
+    if (!isResume) {
+      let sum = 0;
+      let isAllAccountFilled = true;
+      if (!isSumming) {
+        token.allocationList.forEach((al) => {
+          sum += parseInt(al.allocatedPercent, 10);
+          if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
+        });
+        console.log("SumAllocation", sum);
+        setIsAllocationValid(sum === 100 && isAllAccountFilled);
+      }
     }
     return () => {
       isSumming = true;
@@ -322,6 +325,7 @@ const CreateToken = (props) => {
                   </SuiTypography>
                 </SuiBox>
               </SuiBox>
+              <SuiBox mb={2}></SuiBox>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 {token.allocationList.map((tk, index) => (
                   <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
