@@ -7,7 +7,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 // import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import { observer } from "mobx-react";
-import { useContext, useEffect, useReducer } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 // import { useContext } from "react";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "layouts/tokenfactory/constants/TokenFactory";
 import SuiAlert from "components/SuiAlert";
@@ -26,6 +26,7 @@ const TokenFactoryContainer = () => {
   const history = useHistory();
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
+  const { isResume, setIsResume } = useState(false);
   const [newToken, setNewToken] = useReducer((state, newState) => ({ ...state, ...newState }), {
     icon: null,
     tokenName: "",
@@ -217,6 +218,7 @@ const TokenFactoryContainer = () => {
         isContinuesProgress = true;
         setNewToken(token);
       }
+      setIsResume(isContinuesProgress);
       if (isContinuesProgress) await handleDoTokenResume(token);
     }
   };
@@ -261,7 +263,12 @@ const TokenFactoryContainer = () => {
           <TokenFactoryStepper />
         </SuiBox>
         <SuiBox mb={3}>
-          <CreateToken setAlert={setAlert} setToken={setNewToken} token={newToken} />
+          <CreateToken
+            setAlert={setAlert}
+            setToken={setNewToken}
+            token={newToken}
+            isResume={isResume}
+          />
           {alert.open && (
             <Grid container justifyContent="center" alignItems="center">
               <Grid item xs={8}>
