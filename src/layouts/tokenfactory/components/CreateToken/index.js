@@ -2,24 +2,28 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Avatar, Card, Grid, MenuItem, Paper, Select, TextField } from "@mui/material";
+import { Card, Grid, MenuItem, Select } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import SuiInput from "components/SuiInput";
 import SuiTypography from "components/SuiTypography";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
-import { useContext, useEffect, useReducer, useState } from "react";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import { useContext, useEffect, useState, useReducer } from "react";
 import { humanize } from "humanize";
-import { DateTimePicker, LoadingButton, LocalizationProvider } from "@mui/lab";
-import AdapterDateFns from "@mui/lab/AdapterDateFns";
+import AddIcon from "@mui/icons-material/Add";
+import { LoadingButton } from "@mui/lab";
 import moment from "moment";
 import { observer } from "mobx-react";
 import { AddAPhotoOutlined, BackupOutlined, DeleteOutlined } from "@mui/icons-material";
-import Dropzone, { useDropzone } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { resizeImage } from "helpers/TokenUltis";
+import { Allocation, TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
+import _ from "lodash";
+import AllocationView from "../Allocation";
 
 const CreateToken = (props) => {
-  const { setAlert } = props;
+  const { setAlert, token, setToken } = props;
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
   const [vestingStartTime, setVestingStartTime] = useState();
@@ -28,6 +32,9 @@ const CreateToken = (props) => {
   const [loading, setLoading] = useState(props.loading || false);
   const [totalSupply, setTotalSupply] = useState(tokenFactoryStore.registerParams.total_supply);
   const [tokenValidation, setTokenValidation] = useState(false);
+  const [isAccountExist, setIsAccountExist] = useState(false);
+  const [isAllocationValid, setIsAllocationValid] = useState(false);
+  const initialAllocation = new Allocation();
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/jpeg, image/png",
@@ -53,9 +60,10 @@ const CreateToken = (props) => {
         tokenFactoryStore.registerParams.deployer_contract
       );
     } catch (error) {
-      console.log(error);
+      console.log("checkTokenValidation", error);
       if (error?.type !== "AccountDoesNotExist") {
         isValid = false;
+        setIsAccountExist(true);
       }
     }
 
@@ -67,59 +75,83 @@ const CreateToken = (props) => {
   }, [tokenFactoryStore.activeStep]);
 
   useEffect(() => {
-    if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
-    window.delayCheckTokenValidation = setTimeout(async () => {
-      const res = await checkTokenValidation();
-      setTokenValidation(res);
-    }, 500);
-  }, [tokenFactoryStore.token.symbol, tokenFactoryStore.token.tokenName]);
+    setTokenValidation(false);
+    setIsAccountExist(false);
+    if (!_.isEmpty(tokenFactoryStore.token.symbol)) {
+      if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
+      window.delayCheckTokenValidation = setTimeout(async () => {
+        const res = await checkTokenValidation();
+        setTokenValidation(res);
+        setIsAccountExist(!res);
+      }, 500);
+    }
+  }, [tokenFactoryStore.token.symbol]);
+
+  // Validate allocationList
+  useEffect(() => {
+    let sum = 0;
+    let isSumming = false;
+    let isAllAccountFilled = true;
+    if (!isSumming) {
+      token.allocationList.forEach((al) => {
+        sum += parseInt(al.allocatedPercent, 10);
+        if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
+      });
+      console.log("SumAllocation", token.allocationList);
+      console.log("SumAllocation", sum);
+      setIsAllocationValid(sum === 100 && isAllAccountFilled);
+    }
+    return () => {
+      isSumming = true;
+    };
+  }, [token.allocationList]);
 
   const handleTokenNameChange = (e) => {
-    tokenFactoryStore.setToken({ tokenName: e.target.value });
+    setToken({ ...token, ...{ tokenName: e.target.value } });
   };
 
   const handleSymbolChange = (e) => {
-    tokenFactoryStore.setToken({ symbol: e.target.value.toUpperCase() });
+    setToken({ ...token, ...{ symbol: e.target.value.toUpperCase() } });
   };
 
   const handleInitialSupplyChange = (e) => {
     setTotalSupply(e.target.value * 10 ** tokenFactoryStore.token.decimal);
-    tokenFactoryStore.setToken({ initialSupply: e.target.value });
+    setToken({ ...token, ...{ initialSupply: e.target.value } });
   };
 
   const handleDecimalChange = (e) => {
     setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** e.target.value);
-    tokenFactoryStore.setToken({ decimal: e.target.value });
+    setToken({ ...token, ...{ decimal: e.target.value } });
   };
 
-  const handleInitialReleasePercentChange = (e) => {
-    tokenFactoryStore.setToken({ initialRelease: e.target.value });
-  };
+  // const handleInitialReleasePercentChange = (e) => {
+  //   tokenFactoryStore.setToken({ initialRelease: e.target.value });
+  // };
 
-  const handleTreasuryPercentChange = (e) => {
-    tokenFactoryStore.setToken({ treasury: e.target.value });
-  };
+  // const handleTreasuryPercentChange = (e) => {
+  //   tokenFactoryStore.setToken({ treasury: e.target.value });
+  // };
 
-  const handleVestingStartTimeChange = (value) => {
-    setVestingStartTime(value);
-    tokenFactoryStore.setToken({ vestingStartTime: value });
-  };
+  // const handleVestingStartTimeChange = (value) => {
+  //   setVestingStartTime(value);
+  //   tokenFactoryStore.setToken({ vestingStartTime: value });
+  // };
 
   // const handleVestingEndTimeChange = (value) => {
   //   setVestingEndTime(value);
   //   tokenFactoryStore.setToken({ vestingEndTime: value });
   // };
 
-  const handleVestingDurationChange = (e) => {
-    setVestingEndTime(
-      moment(vestingStartTime).add(e.target.value, "days").format("DD/MM/YY hh:mm a")
-    );
-    tokenFactoryStore.setToken({ vestingDuration: e.target.value });
-  };
+  // const handleVestingDurationChange = (e) => {
+  //   setVestingEndTime(
+  //     moment(vestingStartTime).add(e.target.value, "days").format("DD/MM/YY hh:mm a")
+  //   );
+  //   tokenFactoryStore.setToken({ vestingDuration: e.target.value });
+  // };
 
-  const handleVestingIntervalChange = (e) => {
-    tokenFactoryStore.setToken({ vestingInterval: e.target.value });
-  };
+  // const handleVestingIntervalChange = (e) => {
+  //   tokenFactoryStore.setToken({ vestingInterval: e.target.value });
+  // };
 
   const handleRegisterToken = async () => {
     try {
@@ -129,7 +161,7 @@ const CreateToken = (props) => {
         setLoading(false);
       }, 3000);
     } catch (error) {
-      console.log(error);
+      console.log("handleRegisterToken", error);
       setLoading(false);
       setAlert({
         open: true,
@@ -141,16 +173,30 @@ const CreateToken = (props) => {
 
   return (
     <Grid container justifyContent="center" alignItems="center">
-      <Grid item xs={8}>
+      <Grid item xs={12} md={10} lg={10}>
         <Card sx={{ margin: "auto", flexGrow: 10, p: 4 }}>
           <Grid container>
-            <Grid item xs={6} sx={{ pr: 1 }}>
+            <Grid item xs={12} md={6} lg={6} sx={{ pr: 1 }}>
               <SuiBox component="form" role="form">
                 <SuiBox mb={2}>
                   <SuiBox mb={1} ml={0.5}>
-                    <SuiTypography component="label" variant="caption" fontWeight="bold">
-                      Token Name
-                    </SuiTypography>
+                    <Grid container direction="row" justifyContent="space-between" sx={{ pt: 1 }}>
+                      <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
+                        Token Name
+                      </SuiTypography>
+                      {isAccountExist && (
+                        <SuiTypography
+                          component="h4"
+                          variant="caption"
+                          align="right"
+                          sx={{ color: "#f44336", fontWeight: "600", fontStyle: "italic" }}
+                        >
+                          {tokenFactoryStore.token.symbol} already existed !
+                        </SuiTypography>
+                      )}
+                      {/* <Grid item xs={6} alignContent="start"></Grid>
+                      <Grid item xs={6} alignContent="end" alignItems="end"></Grid> */}
+                    </Grid>
                   </SuiBox>
                   <SuiInput
                     disabled={loading}
@@ -159,6 +205,7 @@ const CreateToken = (props) => {
                     placeholder="Token Name"
                     onChange={handleTokenNameChange}
                     value={tokenFactoryStore.token.tokenName}
+                    sx={isAccountExist ? { border: "1px solid red" } : { border: "inherited" }}
                   />
                 </SuiBox>
                 <SuiBox mb={3}>
@@ -176,6 +223,7 @@ const CreateToken = (props) => {
                         placeholder="Symbol"
                         onChange={handleSymbolChange}
                         value={tokenFactoryStore.token.symbol}
+                        sx={isAccountExist ? { border: "1px solid red" } : { border: "inherited" }}
                       />
                     </Grid>
                     <Grid item xs={6} sx={{ pr: 1 }}>
@@ -194,7 +242,7 @@ const CreateToken = (props) => {
                           <AddAPhotoOutlined fontSize="large" />
                         )}
                       </SuiBox>
-                      {tokenFactoryStore.token.icon && (
+                      {tokenFactoryStore.token.icon && !loading && (
                         <DeleteOutlined
                           sx={{ float: "right" }}
                           fontSize="medium"
@@ -207,9 +255,13 @@ const CreateToken = (props) => {
                     </Grid>
                   </Grid>
                 </SuiBox>
+              </SuiBox>
+            </Grid>
+            <Grid item xs={12} md={6} lg={6} sx={{ pr: 1 }}>
+              <SuiBox component="form" role="form">
                 <SuiBox mb={2}>
                   <SuiBox mb={1} ml={0.5}>
-                    <Grid container direction="row" justifyContent="space-between">
+                    <Grid container direction="row" justifyContent="space-between" sx={{ pt: 1 }}>
                       <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
                         Total Supply
                       </SuiTypography>
@@ -262,154 +314,110 @@ const CreateToken = (props) => {
                 </SuiBox>
               </SuiBox>
             </Grid>
-            <Grid item xs={6} sx={{ pr: 1 }}>
-              <SuiBox component="form" role="form">
-                <SuiBox mb={2}>
-                  <SuiBox mb={1} ml={0.5}>
-                    <SuiTypography component="label" variant="caption" fontWeight="bold">
-                      Initial Release
-                    </SuiTypography>
-                  </SuiBox>
-                  <Select
-                    disabled={loading}
-                    value={tokenFactoryStore.token.initialRelease}
-                    onChange={handleInitialReleasePercentChange}
-                    input={<SuiInput />}
-                  >
-                    <MenuItem value={15}>15%</MenuItem>
-                    <MenuItem value={20}>20%</MenuItem>
-                    <MenuItem value={25}>25%</MenuItem>
-                  </Select>
-                </SuiBox>
-
-                <SuiBox mb={2}>
-                  <SuiBox mb={1} ml={0.5}>
-                    <SuiTypography component="label" variant="caption" fontWeight="bold">
-                      Treasury
-                    </SuiTypography>
-                  </SuiBox>
-                  <Select
-                    disabled={loading}
-                    value={tokenFactoryStore.token.treasury}
-                    onChange={handleTreasuryPercentChange}
-                    input={<SuiInput />}
-                  >
-                    <MenuItem value={8}>8%</MenuItem>
-                    <MenuItem value={10}>10%</MenuItem>
-                    <MenuItem value={15}>15%</MenuItem>
-                  </Select>
-                </SuiBox>
-                <Grid container>
-                  <Grid item xs={6}>
-                    <SuiBox mb={2}>
-                      <SuiBox mb={1} ml={0.5}>
-                        <SuiTypography component="label" variant="caption" fontWeight="bold">
-                          Vesting Start Time
-                        </SuiTypography>
-                      </SuiBox>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DateTimePicker
-                          disabled={loading}
-                          renderInput={(params) => <TextField {...params} />}
-                          onChange={handleVestingStartTimeChange}
-                          value={vestingStartTime}
-                        />
-                      </LocalizationProvider>
-                    </SuiBox>
-                  </Grid>
-                  {/* <Grid item xs={6}>
-                    <SuiBox mb={2}>
-                      <SuiBox mb={1} ml={0.5}>
-                        <SuiTypography component="label" variant="caption" fontWeight="bold">
-                          Vesting End Time
-                        </SuiTypography>
-                      </SuiBox>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DateTimePicker
-                          disabled={loading}
-                          renderInput={(params) => <TextField {...params} />}
-                          onChange={handleVestingEndTimeChange}
-                          value={vestingEndTime}
-                        />
-                      </LocalizationProvider>
-                    </SuiBox>
-                  </Grid> */}
-                  <Grid item xs={6}>
-                    <SuiBox mb={2}>
-                      <SuiBox mb={1} ml={0.5}>
-                        <SuiTypography component="label" variant="caption" fontWeight="bold">
-                          Vesting Duration (days)
-                        </SuiTypography>
-                      </SuiBox>
-                      <Select
-                        disabled={loading}
-                        value={tokenFactoryStore.token.vestingDuration}
-                        onChange={handleVestingDurationChange}
-                        input={<SuiInput />}
-                      >
-                        {/* <MenuItem value={1}>1</MenuItem> */}
-                        <MenuItem value={4}>4</MenuItem>
-                        {/* <MenuItem value={7}>7</MenuItem>
-                        <MenuItem value={30}>30</MenuItem> */}
-                      </Select>
-                    </SuiBox>
-                  </Grid>
-                </Grid>
-
-                <SuiBox mb={2}>
-                  <SuiBox mb={1} ml={0.5}>
-                    <SuiTypography
-                      disabled={loading}
-                      component="label"
-                      variant="caption"
-                      fontWeight="bold"
-                    >
-                      Vesting Interval (Days)
-                    </SuiTypography>
-                  </SuiBox>
-                  <Select
-                    disabled={loading}
-                    value={tokenFactoryStore.token.vestingInterval}
-                    onChange={handleVestingIntervalChange}
-                    input={<SuiInput />}
-                  >
-                    <MenuItem value={1}>1</MenuItem>
-                    {/* <MenuItem value={7}>7</MenuItem> */}
-                  </Select>
-                  {/* <SuiInput
-                    disabled={loading}
-                    required
-                    type="number"
-                    defaultValue={tokenFactoryStore.token.vestingInterval}
-                    onChange={handleVestingIntervalChange}
-                  /> */}
+            <Grid item xs={12} sx={{ pr: 1 }}>
+              <SuiBox mb={2}>
+                <SuiBox mb={1} ml={0.5}>
+                  <SuiTypography component="label" variant="caption" fontWeight="bold">
+                    Allocations
+                  </SuiTypography>
                 </SuiBox>
               </SuiBox>
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                {token.allocationList.map((tk, index) => (
+                  <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
+                    <Card sx={{ p: 2, boxShadow: 4 }}>
+                      <AllocationView
+                        allocation={tk}
+                        loading={loading}
+                        onChange={(allocation) => {
+                          const alCache = [...token.allocationList];
+                          const i = token.allocationList.findIndex((al) => al.id === allocation.id);
+                          if (i > -1) {
+                            alCache[i] = allocation;
+                            console.log(alCache);
+                            const t = { ...token };
+                            t.allocationList = alCache;
+                            setToken(t);
+                          }
+                        }}
+                        tokenStore={tokenStore}
+                      />
+                      {tk.accountId !== TREASURY_ACCOUNT && tk.accountId !== tokenStore.accountId && (
+                        <SuiBox sx={{ textAlign: "center" }}>
+                          <SuiButton
+                            disabled={loading}
+                            color="error"
+                            variant="outlined"
+                            onClick={() => {
+                              const t = { ...token };
+                              t.allocationList = token.allocationList.filter(
+                                (al) => al.id !== tk.id
+                              );
+
+                              setToken(t);
+                            }}
+                          >
+                            <DeleteRoundedIcon />
+                          </SuiButton>
+                        </SuiBox>
+                      )}
+                    </Card>
+                  </Grid>
+                ))}
+                <Grid key="add-more-allocation" item xs={12} md={6} lg={4}>
+                  <SuiBox>
+                    <SuiButton
+                      color="primary"
+                      disabled={!isAllocationValid || loading}
+                      variant="gradient"
+                      onClick={() => {
+                        const t = { ...token };
+                        const newItem = {
+                          ...initialAllocation,
+                          ...{
+                            id: new Date().getTime(),
+                          },
+                        };
+                        const alCache = [...token.allocationList, ...[newItem]];
+                        t.allocationList = alCache;
+                        setToken(t);
+                      }}
+                      sx={{ width: "100%", height: "100%" }}
+                    >
+                      <AddIcon />
+                    </SuiButton>
+                  </SuiBox>
+                </Grid>
+              </Grid>
             </Grid>
             <SuiBox mt={4} mb={1}>
-              {/* <SuiButton
-                disabled={loading || !tokenFactoryStore.tokenValidation}
-                variant="gradient"
-                color="primary"
-                onClick={handleRegisterToken}
-              >
-                Create Token
-              </SuiButton> */}
               {tokenStore.isSignedIn ? (
-                <LoadingButton
-                  disabled={loading || !tokenValidation}
-                  sx={{
-                    background: "linear-gradient(to left, #642b73, #c6426e)",
-                    color: "#fff",
-                  }}
-                  onClick={handleRegisterToken}
-                  loading={loading}
-                  loadingPosition="start"
-                  startIcon={<BackupOutlined color="#fff" fontSize="large" />}
-                  variant="contained"
-                >
-                  Create Token
-                </LoadingButton>
+                <>
+                  {!isAllocationValid && (
+                    <SuiTypography
+                      component="h4"
+                      variant="caption"
+                      fontWeight="bold"
+                      sx={{ color: "red", mb: 4 }}
+                    >
+                      Total allocations is difference from 100 percent !
+                    </SuiTypography>
+                  )}
+                  <LoadingButton
+                    disabled={loading || !tokenValidation || !isAllocationValid}
+                    sx={{
+                      background: "linear-gradient(to left, #642b73, #c6426e)",
+                      color: "#fff",
+                    }}
+                    onClick={handleRegisterToken}
+                    loading={loading}
+                    loadingPosition="start"
+                    startIcon={<BackupOutlined color="#fff" fontSize="large" />}
+                    variant="contained"
+                  >
+                    Create Token
+                  </LoadingButton>
+                </>
               ) : (
                 <SuiButton
                   color="primary"

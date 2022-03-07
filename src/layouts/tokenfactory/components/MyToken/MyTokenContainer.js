@@ -13,7 +13,7 @@ import TokenNavbar from "components/App/TokenNavbar";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import SuiButton from "components/SuiButton";
 import { AutorenewOutlined, CheckCircleOutlined } from "@mui/icons-material";
-import moment from "moment";
+// import moment from "moment";
 import humanize from "humanize";
 import { Grid } from "@mui/material";
 import SuiAlert from "components/SuiAlert";
@@ -40,19 +40,33 @@ const MyTokenContainer = () => {
     await tokenFactoryStore.claim(e);
   };
   useEffect(async () => {
-    const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
-    tokenFactoryStore.setAllTokens(lstAllTokens);
-
-    if (tokenStore.accountId) {
-      await tokenFactoryStore.initContract();
-      try {
-        const lstMyToken = lstAllTokens.filter((t) => t.creator === tokenStore.accountId);
-        const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
-        tokenFactoryStore.setRegisteredTokens(mergeLst);
-      } catch (error) {
-        console.log(error);
+    let isProgress = false;
+    const getListAllTokenContracts = async () => {
+      if (!isProgress) {
+        const lstAllTokens = await tokenFactoryStore.getListAllTokenContracts();
+        tokenFactoryStore.setAllTokens(lstAllTokens);
       }
-    }
+    };
+
+    const init = async () => {
+      await getListAllTokenContracts();
+      if (tokenStore.accountId && !isProgress) {
+        try {
+          const lstMyToken = tokenFactoryStore.allTokens.filter(
+            (t) => t.creator === tokenStore.accountId
+          );
+          const mergeLst = await tokenFactoryStore.getDeployerState(lstMyToken);
+          tokenFactoryStore.setRegisteredTokens(mergeLst);
+          if (!tokenFactoryStore.contract) await tokenFactoryStore.initContract();
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+    init();
+    return () => {
+      isProgress = true;
+    };
   }, [tokenStore.accountId]);
 
   useEffect(() => {
@@ -66,12 +80,12 @@ const MyTokenContainer = () => {
             </SuiBox>
           ),
           total_supply: humanize.numberFormat(t.total_supply / 10 ** t.decimals),
-          allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
+          // allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
           claimable_amount: humanize.numberFormat(t.claimable_amount / 10 ** t.decimals),
           claimed: humanize.numberFormat(t.claimed / 10 ** t.decimals),
-          vesting_start_time: moment(t.vesting_start_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
-          vesting_end_time: moment(t.vesting_end_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
-          vesting_interval: Math.round(t.vesting_interval / (24 * 3600 * 10 ** 9)),
+          // vesting_start_time: moment(t.vesting_start_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
+          // vesting_end_time: moment(t.vesting_end_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
+          // vesting_interval: Math.round(t.vesting_interval / (24 * 3600 * 10 ** 9)),
           action: (
             <SuiBox ml={-1.325}>
               {!t.allocation_initialized && (
@@ -120,10 +134,10 @@ const MyTokenContainer = () => {
                 { title: "Token Name", name: "token_name", align: "left" },
                 { title: "Symbol", name: "symbol", align: "left" },
                 { title: "Total Supply", name: "total_supply", align: "left" },
-                { title: "Vesting Start Time", name: "vesting_start_time", align: "center" },
-                { title: "Vesting End Time", name: "vesting_end_time", align: "center" },
-                { title: "Vesting Interval (days)", name: "vesting_interval", align: "center" },
-                { title: "Allocation", name: "allocated_num", align: "center" },
+                // { title: "Vesting Start Time", name: "vesting_start_time", align: "center" },
+                // { title: "Vesting End Time", name: "vesting_end_time", align: "center" },
+                // { title: "Vesting Interval (days)", name: "vesting_interval", align: "center" },
+                // { title: "Allocation", name: "allocated_num", align: "center" },
                 { title: "Claimable", name: "claimable_amount", align: "center" },
                 { title: "Claimed", name: "claimed", align: "center" },
                 { title: "", name: "action", align: "right" },
