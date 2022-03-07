@@ -72,7 +72,6 @@ const MyTokenContainer = () => {
             </SuiBox>
           ),
           total_supply: humanize.numberFormat(t.total_supply / 10 ** t.decimals),
-          enough_storage: t.enoughStorage,
           allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
           claimable_amount: humanize.numberFormat(t.claimable_amount / 10 ** t.decimals),
           claimed: humanize.numberFormat(t.claimed / 10 ** t.decimals),
@@ -93,7 +92,7 @@ const MyTokenContainer = () => {
               )}
             {t.enoughStorage === null &&
                 <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
-                  Add your token to near wallet
+                  Add token to wallet
                 </SuiButton>
             }
 
@@ -105,7 +104,7 @@ const MyTokenContainer = () => {
              ))
             }
 
-            {t.enoughStorage !== null &&
+            {t.enoughStorage != null &&
               (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
                   <SuiButton disabled variant="gradient" color="success">
                     <CheckCircleOutlined sx={{ marginRight: 1 }} />

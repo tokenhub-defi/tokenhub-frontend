@@ -140,8 +140,9 @@ export class TokenFactoryStore {
     this.tokenStore = tokenStore;
   };
 
-  setRegisteredTokens = (lst) => {
-    lst.map( async (i) => {
+  setRegisteredTokens = async (lst) => {
+
+     const promiseArray = lst.map( async (i) => {
       const enoughStorage = await this.enoughStorage(i);
 
       console.log(enoughStorage);
@@ -150,7 +151,8 @@ export class TokenFactoryStore {
       clonedI.enoughStorage = enoughStorage
       return clonedI
     })
-    this.registeredTokens = lst;
+
+    this.registeredTokens = await Promise.all(promiseArray);
     this.remapTokenList();
   };
 
