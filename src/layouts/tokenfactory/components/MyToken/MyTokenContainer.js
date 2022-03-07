@@ -108,7 +108,7 @@ const MyTokenContainer = () => {
               )}
             {t.enoughStorage === null &&
                 <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
-                  Add your token to near wallet
+                  Add token to wallet
                 </SuiButton>
             }
 
@@ -120,7 +120,7 @@ const MyTokenContainer = () => {
              ))
             }
 
-            {t.enoughStorage !== null &&
+            {t.enoughStorage != null &&
               (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
                   <SuiButton disabled variant="gradient" color="success">
                     <CheckCircleOutlined sx={{ marginRight: 1 }} />
