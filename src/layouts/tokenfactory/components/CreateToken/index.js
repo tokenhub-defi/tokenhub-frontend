@@ -325,7 +325,7 @@ const CreateToken = (props) => {
                   </SuiTypography>
                 </SuiBox>
               </SuiBox>
-              <SuiBox mb={2}></SuiBox>
+              {/* <SuiBox mb={2}></SuiBox> */}
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 {token.allocationList.map((tk, index) => (
                   <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
