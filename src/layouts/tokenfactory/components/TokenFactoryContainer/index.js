@@ -26,7 +26,7 @@ const TokenFactoryContainer = () => {
   const history = useHistory();
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
-  const { isResume, setIsResume } = useState(false);
+  const [isResume, setIsResume] = useState(false);
   const [newToken, setNewToken] = useReducer((state, newState) => ({ ...state, ...newState }), {
     icon: null,
     tokenName: "",
@@ -163,7 +163,9 @@ const TokenFactoryContainer = () => {
     const resumeToken = queryParams.get("resume_token");
     const transactionHash = queryParams.get("transactionHashes");
     let token = null;
-    let isContinuesProgress = false;
+    let isContinuesProgress = !_.isEmpty(transactionHash) || !_.isEmpty(resumeToken);
+    setIsResume(isContinuesProgress);
+
     if (contract) {
       // let token = localStorage.getItem(LOCAL_STORAGE_CURRENT_TOKEN);
 
@@ -218,7 +220,6 @@ const TokenFactoryContainer = () => {
         isContinuesProgress = true;
         setNewToken(token);
       }
-      setIsResume(isContinuesProgress);
       if (isContinuesProgress) await handleDoTokenResume(token);
     }
   };
@@ -260,7 +261,7 @@ const TokenFactoryContainer = () => {
       <TokenNavbar />
       <SuiBox py={3}>
         <SuiBox mb={3}>
-          <TokenFactoryStepper />
+          <TokenFactoryStepper alert={alert} />
         </SuiBox>
         <SuiBox mb={3}>
           <CreateToken

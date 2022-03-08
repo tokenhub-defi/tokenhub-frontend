@@ -76,9 +76,9 @@ const CreateToken = (props) => {
   }, [tokenFactoryStore.activeStep]);
 
   useEffect(() => {
+    setTokenValidation(false);
+    setIsAccountExist(false);
     if (!isResume) {
-      setTokenValidation(false);
-      setIsAccountExist(false);
       if (!_.isEmpty(tokenFactoryStore.token.symbol)) {
         if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
         window.delayCheckTokenValidation = setTimeout(async () => {
@@ -93,6 +93,7 @@ const CreateToken = (props) => {
   // Validate allocationList
   useEffect(() => {
     let isSumming = false;
+    setIsAllocationValid(true);
     if (!isResume) {
       let sum = 0;
       let isAllAccountFilled = true;
@@ -188,16 +189,17 @@ const CreateToken = (props) => {
                       <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
                         Token Name
                       </SuiTypography>
-                      {isAccountExist && (
-                        <SuiTypography
-                          component="h4"
-                          variant="caption"
-                          align="right"
-                          sx={{ color: "#f44336", fontWeight: "600", fontStyle: "italic" }}
-                        >
-                          {tokenFactoryStore.token.symbol} already existed !
-                        </SuiTypography>
-                      )}
+                      {isAccountExist &&
+                        !isResume(
+                          <SuiTypography
+                            component="h4"
+                            variant="caption"
+                            align="right"
+                            sx={{ color: "#f44336", fontWeight: "600", fontStyle: "italic" }}
+                          >
+                            {tokenFactoryStore.token.symbol} already existed !
+                          </SuiTypography>
+                        )}
                       {/* <Grid item xs={6} alignContent="start"></Grid>
                       <Grid item xs={6} alignContent="end" alignItems="end"></Grid> */}
                     </Grid>
@@ -209,7 +211,11 @@ const CreateToken = (props) => {
                     placeholder="Token Name"
                     onChange={handleTokenNameChange}
                     value={tokenFactoryStore.token.tokenName}
-                    sx={isAccountExist ? { border: "1px solid red" } : { border: "inherited" }}
+                    sx={
+                      isAccountExist && !isResume
+                        ? { border: "1px solid red" }
+                        : { border: "inherited" }
+                    }
                   />
                 </SuiBox>
                 <SuiBox mb={3}>
