@@ -9,7 +9,7 @@ import SuiInput from "components/SuiInput";
 import SuiTypography from "components/SuiTypography";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import { useContext, useEffect, useState, useReducer } from "react";
+import { useContext, useEffect, useState } from "react";
 import { humanize } from "humanize";
 import AddIcon from "@mui/icons-material/Add";
 import { LoadingButton } from "@mui/lab";
@@ -21,6 +21,7 @@ import { resizeImage } from "helpers/TokenUltis";
 import { Allocation, TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
 import AllocationView from "../Allocation";
+import AllocationTable from "../AllocationTable";
 
 const CreateToken = (props) => {
   const { setAlert, token, setToken, isResume } = props;
@@ -325,8 +326,44 @@ const CreateToken = (props) => {
                   </SuiTypography>
                 </SuiBox>
               </SuiBox>
-              {/* <SuiBox mb={2}></SuiBox> */}
-              <Grid container spacing={2} sx={{ mb: 2 }}>
+              <SuiBox mb={2}>
+                <SuiBox mb={1} ml={0.5}>
+                  <AllocationTable
+                    isResume={isResume}
+                    loading={loading}
+                    allocations={token.allocationList}
+                    accountId={tokenStore.accountId}
+                    onChange={(allocationList) => {
+                      const updateToken = { ...token };
+                      updateToken.allocationList = allocationList;
+                      setToken(updateToken);
+                    }}
+                  />
+                </SuiBox>
+                <SuiBox>
+                  <SuiButton
+                    color="primary"
+                    disabled={!isAllocationValid || loading}
+                    variant="gradient"
+                    onClick={() => {
+                      const t = { ...token };
+                      const newItem = {
+                        ...initialAllocation,
+                        ...{
+                          id: new Date().getTime(),
+                        },
+                      };
+                      const alCache = [...token.allocationList, ...[newItem]];
+                      t.allocationList = alCache;
+                      setToken(t);
+                    }}
+                    sx={{ width: "100%", height: "100%" }}
+                  >
+                    <AddIcon />
+                  </SuiButton>
+                </SuiBox>
+              </SuiBox>
+              {/* <Grid container spacing={2} sx={{ mb: 2 }}>
                 {token.allocationList.map((tk, index) => (
                   <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
                     <Card sx={{ p: 2, boxShadow: 4 }}>
@@ -392,7 +429,7 @@ const CreateToken = (props) => {
                     </SuiButton>
                   </SuiBox>
                 </Grid>
-              </Grid>
+              </Grid> */}
             </Grid>
             <SuiBox mt={4} mb={1}>
               {tokenStore.isSignedIn ? (

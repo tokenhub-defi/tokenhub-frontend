@@ -1,28 +1,52 @@
 import SuiInput from "components/SuiInput";
-import { Table } from "@mui/material";
+import { MenuItem, Select, TextField } from "@mui/material";
+import Table from "examples/Tables/Table";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
+import { observer } from "mobx-react";
+import _ from "lodash";
+import { DateTimePicker, LocalizationProvider } from "@mui/lab";
+import AdapterDateFns from "@mui/lab/AdapterDateFns";
+import { TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
+import SuiBox from "components/SuiBox";
+import SuiButton from "components/SuiButton";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import "../Allocation/allocation.scss";
 
 const AllocationTable = (props) => {
-  const { allocation, onChange, loading, token } = props;
-  const { allocationList } = token;
-  const { allocationRows, setAllocationRows } = useState([]);
+  const { onChange, loading, allocations, isResume, accountId } = props;
+  const [rows, setRows] = useState([]);
+
+  const updateAllocation = (allocation) => {
+    const alRows = [...allocations];
+    const index = alRows.findIndex((ar) => ar.id === allocation.id);
+    if (index > -1) {
+      alRows[index] = allocation;
+      onChange(alRows);
+    }
+  };
 
   const buildAllocationRow = () => {
-    const lst = token.allocationList.map((item) => ({
+    const lst = allocations.map((item) => ({
       accountId: (
         <SuiInput
-          value={accountId}
+          value={item.accountId}
           disabled={loading}
           onChange={(e) => {
-            setAccountId(e.target.value);
+            const allocation = { ...item };
+            allocation.accountId = e.target.value;
+            updateAllocation(allocation);
           }}
-          sx={_.isEmpty(accountId) ? { borderColor: "red" } : { borderColor: "inherited" }}
+          sx={
+            _.isEmpty(item.accountId) && !isResume
+              ? { borderColor: "red" }
+              : { borderColor: "inherited" }
+          }
         />
       ),
       allocatedPercent: (
         <TextField
-          value={allocatedPercent}
+          value={item.allocatedPercent}
           disabled={loading}
           type="number"
           className="allocated-percent"
@@ -33,13 +57,15 @@ const AllocationTable = (props) => {
           }}
           sx={{ width: "100%" }}
           onChange={(e) => {
-            setAllocatedPercent(e.target.value);
+            const allocation = { ...item };
+            allocation.allocatedPercent = e.target.value;
+            updateAllocation(allocation);
           }}
         />
       ),
       initialRelease: (
         <TextField
-          value={initialRelease}
+          value={item.initialRelease}
           disabled={loading}
           type="number"
           className="initial-release"
@@ -50,7 +76,9 @@ const AllocationTable = (props) => {
           }}
           sx={{ width: "100%" }}
           onChange={(e) => {
-            setInitialRelease(e.target.value);
+            const allocation = { ...item };
+            allocation.initialRelease = e.target.value;
+            updateAllocation(allocation);
           }}
         />
       ),
@@ -60,33 +88,39 @@ const AllocationTable = (props) => {
             renderInput={(params) => <TextField {...params} disabled={loading} />}
             disabled={loading}
             onChange={(value) => {
-              setVestingStartTime(value);
+              const allocation = { ...item };
+              allocation.vestingStartTime = value;
+              updateAllocation(allocation);
             }}
-            value={vestingStartTime}
+            value={item.vestingStartTime}
           />
         </LocalizationProvider>
       ),
-      vestingEndTime: (
+      vestingDuration: (
         <Select
-          value={vestingDuration}
+          value={item.vestingDuration}
           disabled={loading}
           onChange={(e) => {
-            setVestingDuration(e.target.value);
+            const allocation = { ...item };
+            allocation.vestingDuration = e.target.value;
+            updateAllocation(allocation);
           }}
           input={<SuiInput />}
         >
           {/* <MenuItem value={1}>1</MenuItem> */}
           <MenuItem value={4}>4</MenuItem>
           {/* <MenuItem value={7}>7</MenuItem>
-    <MenuItem value={30}>30</MenuItem> */}
+          <MenuItem value={30}>30</MenuItem> */}
         </Select>
       ),
       vestingInterval: (
         <Select
-          value={vestingInterval}
+          value={item.vestingInterval}
           disabled={loading}
           onChange={(e) => {
-            setVestingInterval(e.target.value);
+            const allocation = { ...item };
+            allocation.vestingInterval = e.target.value;
+            updateAllocation(allocation);
           }}
           input={<SuiInput />}
         >
@@ -94,32 +128,32 @@ const AllocationTable = (props) => {
           {/* <MenuItem value={7}>7</MenuItem> */}
         </Select>
       ),
+      action: (
+        <>
+          {item.accountId !== TREASURY_ACCOUNT && item.accountId !== accountId && (
+            <SuiBox sx={{ textAlign: "center" }}>
+              <SuiButton
+                disabled={loading}
+                color="error"
+                variant="outlined"
+                onClick={() => {
+                  const allList = allocations.filter((al) => al.id !== item.id);
+                  onChange(allList);
+                }}
+              >
+                <DeleteRoundedIcon />
+              </SuiButton>
+            </SuiBox>
+          )}
+        </>
+      ),
     }));
-    setAllocationRows(lst);
+    setRows(lst);
   };
 
-  useEffect(() => {}, []);
-
   useEffect(() => {
-    onChange({
-      ...allocation,
-      ...{
-        accountId,
-        allocatedPercent,
-        initialRelease,
-        vestingStartTime,
-        vestingDuration,
-        vestingInterval,
-      },
-    });
-  }, [
-    accountId,
-    allocatedPercent,
-    initialRelease,
-    vestingStartTime,
-    vestingDuration,
-    vestingInterval,
-  ]);
+    buildAllocationRow();
+  }, [allocations]);
 
   return (
     <Table
@@ -132,25 +166,24 @@ const AllocationTable = (props) => {
         { title: "Interval", name: "vestingInterval", align: "right" },
         { title: "", name: "action", align: "center" },
       ]}
-      rows={allocationRows}
+      rows={rows}
     />
   );
 };
 
 AllocationTable.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
-  allocation: PropTypes.object.isRequired,
+  allocations: PropTypes.array.isRequired,
   onChange: PropTypes.func.isRequired,
-  isHideAccountId: PropTypes.bool,
-  // eslint-disable-next-line react/forbid-prop-types
-  tokenStore: PropTypes.object,
   loading: PropTypes.bool,
+  isResume: PropTypes.bool,
+  accountId: PropTypes.string,
 };
 
 AllocationTable.defaultProps = {
-  isHideAccountId: false,
-  tokenStore: null,
   loading: false,
+  isResume: false,
+  accountId: null,
 };
 
-export default AllocationTable;
+export default observer(AllocationTable);

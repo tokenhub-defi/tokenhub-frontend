@@ -80,6 +80,13 @@ export class TokenStore {
       args_base64: Buffer.from(JSON.stringify(params)).toString("base64"),
       finality: "optimistic",
     });
+    console.log("Call view method", {
+      request_type: "call_function",
+      account_id: accountId,
+      method_name: method,
+      args_base64: Buffer.from(JSON.stringify(params)).toString("base64"),
+      finality: "optimistic",
+    });
 
     // format result
     const res = JSON.parse(Buffer.from(rawResult.result).toString());

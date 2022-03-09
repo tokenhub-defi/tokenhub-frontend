@@ -436,28 +436,11 @@ export class TokenFactoryStore {
     const merge = [];
     if (lst) {
       try {
-        const lstPromises = [];
-        lst.forEach((rt) => {
-          const deployerPromise = async () => {
-            const deployerContract = await this.initTokenContract(
-              rt.ft_deployer,
-              ["check_account"],
-              []
-            );
-
-            try {
-              const contractInfo = await deployerContract.check_account({
-                account_id: this.tokenStore.accountId,
-              });
-
-              return contractInfo;
-            } catch (error) {
-              console.log(error);
-              return null;
-            }
-          };
-          lstPromises.push(deployerPromise());
-        });
+        const lstPromises = lst.map((rt) =>
+          this.tokenStore.callViewMethod(rt.ft_deployer, "check_account", {
+            account_id: this.tokenStore.accountId,
+          })
+        );
         const result = await Promise.allSettled(lstPromises);
         console.log("getDeployerState", result);
 
