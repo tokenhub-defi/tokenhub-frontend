@@ -10,8 +10,6 @@ import { observer } from "mobx-react";
 import { useContext, useEffect, useReducer, useState } from "react";
 // import { useContext } from "react";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "layouts/tokenfactory/constants/TokenFactory";
-import SuiAlert from "components/SuiAlert";
-import { Grid } from "@mui/material";
 import moment from "moment";
 import { TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
@@ -142,6 +140,13 @@ const TokenFactoryContainer = () => {
                 message: "Create Token Success",
                 color: "success",
               });
+              setTimeout(() => {
+                setAlert({
+                  open: false,
+                  message: "",
+                  color: "success",
+                });
+              }, 3000);
             }
           }
         }
@@ -270,17 +275,6 @@ const TokenFactoryContainer = () => {
             token={newToken}
             isResume={isResume}
           />
-          {alert.open && (
-            <Grid container justifyContent="center" alignItems="center">
-              <Grid item xs={8}>
-                <SuiBox mt={4} mb={1}>
-                  <SuiAlert color={alert.color} dismissible>
-                    {alert.message}
-                  </SuiAlert>
-                </SuiBox>
-              </Grid>
-            </Grid>
-          )}
         </SuiBox>
       </SuiBox>
     </DashboardLayout>

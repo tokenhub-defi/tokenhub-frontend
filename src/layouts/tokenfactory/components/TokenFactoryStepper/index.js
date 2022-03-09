@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable prettier/prettier */
-import { Card, Grid, Stack } from "@mui/material";
+import { Card, Grid } from "@mui/material";
 import SuiAlert from "components/SuiAlert";
+import SuiBox from "components/SuiBox";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import { observer } from "mobx-react";
 import { useContext } from "react";
@@ -18,11 +19,15 @@ const TokenFactoryStepper = (props) => {
             steps={tokenFactoryStore.steps}
             activeStep={tokenFactoryStore.activeStep}
           />
-          <Stack sx={{ width: "100%" }} spacing={4}>
-            <SuiAlert color={alert.color} dismissible>
-              {alert.message}
-            </SuiAlert>
-          </Stack>
+          {alert.open && (
+            <Grid container justifyContent="center" alignItems="center">
+              <Grid item xs={10}>
+                <SuiBox>
+                  <SuiAlert color={alert.color}>{alert.message}</SuiAlert>
+                </SuiBox>
+              </Grid>
+            </Grid>
+          )}
         </Card>
       </Grid>
     </Grid>
