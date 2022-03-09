@@ -10,8 +10,6 @@ import { observer } from "mobx-react";
 import { useContext, useEffect, useReducer, useState } from "react";
 // import { useContext } from "react";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "layouts/tokenfactory/constants/TokenFactory";
-import SuiAlert from "components/SuiAlert";
-import { Grid } from "@mui/material";
 import moment from "moment";
 import { TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
@@ -26,7 +24,7 @@ const TokenFactoryContainer = () => {
   const history = useHistory();
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
-  const { isResume, setIsResume } = useState(false);
+  const [isResume, setIsResume] = useState(false);
   const [newToken, setNewToken] = useReducer((state, newState) => ({ ...state, ...newState }), {
     icon: null,
     tokenName: "",
@@ -142,6 +140,13 @@ const TokenFactoryContainer = () => {
                 message: "Create Token Success",
                 color: "success",
               });
+              setTimeout(() => {
+                setAlert({
+                  open: false,
+                  message: "",
+                  color: "success",
+                });
+              }, 3000);
             }
           }
         }
@@ -163,7 +168,9 @@ const TokenFactoryContainer = () => {
     const resumeToken = queryParams.get("resume_token");
     const transactionHash = queryParams.get("transactionHashes");
     let token = null;
-    let isContinuesProgress = false;
+    let isContinuesProgress = !_.isEmpty(transactionHash) || !_.isEmpty(resumeToken);
+    setIsResume(isContinuesProgress);
+
     if (contract) {
       // let token = localStorage.getItem(LOCAL_STORAGE_CURRENT_TOKEN);
 
@@ -218,7 +225,6 @@ const TokenFactoryContainer = () => {
         isContinuesProgress = true;
         setNewToken(token);
       }
-      setIsResume(isContinuesProgress);
       if (isContinuesProgress) await handleDoTokenResume(token);
     }
   };
@@ -260,7 +266,7 @@ const TokenFactoryContainer = () => {
       <TokenNavbar />
       <SuiBox py={3}>
         <SuiBox mb={3}>
-          <TokenFactoryStepper />
+          <TokenFactoryStepper alert={alert} />
         </SuiBox>
         <SuiBox mb={3}>
           <CreateToken
@@ -269,17 +275,6 @@ const TokenFactoryContainer = () => {
             token={newToken}
             isResume={isResume}
           />
-          {alert.open && (
-            <Grid container justifyContent="center" alignItems="center">
-              <Grid item xs={8}>
-                <SuiBox mt={4} mb={1}>
-                  <SuiAlert color={alert.color} dismissible>
-                    {alert.message}
-                  </SuiAlert>
-                </SuiBox>
-              </Grid>
-            </Grid>
-          )}
         </SuiBox>
       </SuiBox>
     </DashboardLayout>
