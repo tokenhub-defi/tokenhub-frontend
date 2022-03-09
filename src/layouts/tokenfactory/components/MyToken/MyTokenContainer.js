@@ -80,9 +80,10 @@ const MyTokenContainer = () => {
             </SuiBox>
           ),
           total_supply: humanize.numberFormat(t.total_supply / 10 ** t.decimals),
-          // allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
+          initial_release: `${humanize.numberFormat(t.initial_release / 100)}%`,
           claimable_amount: humanize.numberFormat(t.claimable_amount / 10 ** t.decimals),
           claimed: humanize.numberFormat(t.claimed / 10 ** t.decimals),
+          allocated_percent: `${humanize.numberFormat(t.allocated_percent / 100)}%`,
           // vesting_start_time: moment(t.vesting_start_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
           // vesting_end_time: moment(t.vesting_end_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
           // vesting_interval: Math.round(t.vesting_interval / (24 * 3600 * 10 ** 9)),
@@ -133,13 +134,14 @@ const MyTokenContainer = () => {
               columns={[
                 { title: "Token Name", name: "token_name", align: "left" },
                 { title: "Symbol", name: "symbol", align: "left" },
-                { title: "Total Supply", name: "total_supply", align: "left" },
-                // { title: "Vesting Start Time", name: "vesting_start_time", align: "center" },
+                { title: "Total Supply", name: "total_supply", align: "right" },
+                { title: "Allocated", name: "allocated_percent", align: "right" },
+                { title: "Initial Release", name: "initial_release", align: "right" },
                 // { title: "Vesting End Time", name: "vesting_end_time", align: "center" },
                 // { title: "Vesting Interval (days)", name: "vesting_interval", align: "center" },
                 // { title: "Allocation", name: "allocated_num", align: "center" },
-                { title: "Claimable", name: "claimable_amount", align: "center" },
-                { title: "Claimed", name: "claimed", align: "center" },
+                { title: "Claimable", name: "claimable_amount", align: "right" },
+                { title: "Claimed", name: "claimed", align: "right" },
                 { title: "", name: "action", align: "right" },
               ]}
               rows={rows}

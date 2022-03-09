@@ -1,8 +1,13 @@
+/* eslint-disable no-unused-vars */
 import SuiInput from "components/SuiInput";
 import { MenuItem, Select, TextField } from "@mui/material";
-import Table from "examples/Tables/Table";
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridToolbarColumnsButton,
+  GridToolbarContainer,
+} from "@mui/x-data-grid";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import _ from "lodash";
 import { DateTimePicker, LocalizationProvider } from "@mui/lab";
@@ -12,161 +17,110 @@ import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import "../Allocation/allocation.scss";
+import { useCallback } from "react";
+import Button from "assets/theme/components/button";
 
 const AllocationTable = (props) => {
   const { onChange, loading, allocations, isResume, accountId } = props;
-  const [rows, setRows] = useState([]);
 
-  const updateAllocation = (allocation) => {
-    const alRows = [...allocations];
-    const index = alRows.findIndex((ar) => ar.id === allocation.id);
-    if (index > -1) {
-      alRows[index] = allocation;
-      onChange(alRows);
-    }
+  const updateAllocation = ({ id, field, value }) => {
+    onChange(allocations.map((all) => (all.id === id ? { ...all, ...{ [field]: value } } : all)));
   };
-
-  const buildAllocationRow = () => {
-    const lst = allocations.map((item) => ({
-      accountId: (
-        <SuiInput
-          value={item.accountId}
-          disabled={loading}
-          onChange={(e) => {
-            const allocation = { ...item };
-            allocation.accountId = e.target.value;
-            updateAllocation(allocation);
-          }}
-          sx={
-            _.isEmpty(item.accountId) && !isResume
-              ? { borderColor: "red" }
-              : { borderColor: "inherited" }
-          }
-        />
-      ),
-      allocatedPercent: (
-        <TextField
-          value={item.allocatedPercent}
-          disabled={loading}
-          type="number"
-          className="allocated-percent"
-          inputProps={{
-            max: 100,
-            min: 10,
-            width: "100%",
-          }}
-          sx={{ width: "100%" }}
-          onChange={(e) => {
-            const allocation = { ...item };
-            allocation.allocatedPercent = e.target.value;
-            updateAllocation(allocation);
-          }}
-        />
-      ),
-      initialRelease: (
-        <TextField
-          value={item.initialRelease}
-          disabled={loading}
-          type="number"
-          className="initial-release"
-          inputProps={{
-            max: 100,
-            min: 10,
-            width: "100%",
-          }}
-          sx={{ width: "100%" }}
-          onChange={(e) => {
-            const allocation = { ...item };
-            allocation.initialRelease = e.target.value;
-            updateAllocation(allocation);
-          }}
-        />
-      ),
-      vestingStartTime: (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DateTimePicker
-            renderInput={(params) => <TextField {...params} disabled={loading} />}
-            disabled={loading}
-            onChange={(value) => {
-              const allocation = { ...item };
-              allocation.vestingStartTime = value;
-              updateAllocation(allocation);
-            }}
-            value={item.vestingStartTime}
-          />
-        </LocalizationProvider>
-      ),
-      vestingDuration: (
-        <Select
-          value={item.vestingDuration}
-          disabled={loading}
-          onChange={(e) => {
-            const allocation = { ...item };
-            allocation.vestingDuration = e.target.value;
-            updateAllocation(allocation);
-          }}
-          input={<SuiInput />}
-        >
-          {/* <MenuItem value={1}>1</MenuItem> */}
-          <MenuItem value={4}>4</MenuItem>
-          {/* <MenuItem value={7}>7</MenuItem>
-          <MenuItem value={30}>30</MenuItem> */}
-        </Select>
-      ),
-      vestingInterval: (
-        <Select
-          value={item.vestingInterval}
-          disabled={loading}
-          onChange={(e) => {
-            const allocation = { ...item };
-            allocation.vestingInterval = e.target.value;
-            updateAllocation(allocation);
-          }}
-          input={<SuiInput />}
-        >
-          <MenuItem value={1}>1</MenuItem>
-          {/* <MenuItem value={7}>7</MenuItem> */}
-        </Select>
-      ),
-      action: (
-        <>
-          {item.accountId !== TREASURY_ACCOUNT && item.accountId !== accountId && (
-            <SuiBox sx={{ textAlign: "center" }}>
-              <SuiButton
-                disabled={loading}
-                color="error"
-                variant="outlined"
-                onClick={() => {
-                  const allList = allocations.filter((al) => al.id !== item.id);
-                  onChange(allList);
-                }}
-              >
-                <DeleteRoundedIcon />
-              </SuiButton>
-            </SuiBox>
-          )}
-        </>
-      ),
-    }));
-    setRows(lst);
-  };
-
-  useEffect(() => {
-    buildAllocationRow();
-  }, [allocations]);
+  const checkChangeable = (account) => account !== TREASURY_ACCOUNT && account !== accountId;
 
   return (
-    <Table
+    <DataGrid
+      autoHeight
+      onCellEditCommit={(params) => {
+        console.log(params);
+        updateAllocation(params);
+      }}
+      isCellEditable={(params) =>
+        (params.colDef.field !== "accountId" && !loading) ||
+        (params.colDef.field === "accountId" && checkChangeable(params.row.accountId) && !loading)
+      }
+      disableColumnMenu
       columns={[
-        { title: "Account", name: "accountId", align: "left" },
-        { title: "Allocated Percent", name: "allocatedPercent", align: "right" },
-        { title: "Initial Release", name: "initialRelease", align: "right" },
-        { title: "Start Time", name: "vestingStartTime", align: "right" },
-        { title: "Duration", name: "vestingDuration", align: "right" },
-        { title: "Interval", name: "vestingInterval", align: "right" },
-        { title: "", name: "action", align: "center" },
+        {
+          headerName: "Account",
+          field: "accountId",
+          editable: !loading,
+          flex: 2,
+          headerAlign: "left",
+        },
+        {
+          headerName: "Allocated",
+          field: "allocatedPercent",
+          editable: !loading,
+          flex: 1,
+          type: "number",
+          headerAlign: "right",
+          valueFormatter: (params) => `${params.value} %`,
+        },
+        {
+          headerName: "Initial Release",
+          flex: 1,
+          field: "initialRelease",
+          editable: !loading,
+          type: "number",
+          headerAlign: "right",
+          valueFormatter: (params) => `${params.value} %`,
+        },
+        {
+          headerName: "Start Time",
+          flex: 1,
+          field: "vestingStartTime",
+          editable: !loading,
+          type: "date",
+          headerAlign: "right",
+          align: "right",
+        },
+        {
+          headerName: "Duration",
+          flex: 1,
+          field: "vestingDuration",
+          editable: !loading,
+          type: "singleSelect",
+          valueOptions: [4],
+          align: "right",
+          headerAlign: "right",
+          valueFormatter: (params) => `${params.value} day`,
+        },
+        {
+          headerName: "Interval",
+          flex: 1,
+          field: "vestingInterval",
+          valueOptions: [1],
+          editable: !loading,
+          type: "singleSelect",
+          align: "right",
+          headerAlign: "right",
+          valueFormatter: (params) => `${params.value} day`,
+        },
+        {
+          field: "actions",
+          type: "actions",
+          headerName: "",
+          flex: 1,
+          cellClassName: "actions",
+          getActions: (e) =>
+            checkChangeable(e.row.accountId)
+              ? [
+                  <GridActionsCellItem
+                    icon={<DeleteRoundedIcon />}
+                    label="Delete"
+                    disabled={loading || !checkChangeable()}
+                    onClick={() => {
+                      onChange(allocations.filter((al) => al.id !== e.id));
+                    }}
+                    color="error"
+                  />,
+                ]
+              : [],
+        },
       ]}
-      rows={rows}
+      rows={allocations}
+      hideFooter
     />
   );
 };

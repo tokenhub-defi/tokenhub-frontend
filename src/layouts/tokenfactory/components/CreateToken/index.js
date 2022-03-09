@@ -357,7 +357,6 @@ const CreateToken = (props) => {
                       t.allocationList = alCache;
                       setToken(t);
                     }}
-                    sx={{ width: "100%", height: "100%" }}
                   >
                     <AddIcon />
                   </SuiButton>
