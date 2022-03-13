@@ -169,13 +169,13 @@ export class TokenSalesStore {
       const saleInfo = result[0];
       const totalDeposit = result[1];
       const tokenPeriod = result[2];
-      // let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
+      let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
 
       const tokenInfo = await this.tokenStore.callViewMethod(
         saleInfo.ft_contract_name,
         "ft_metadata"
       );
-      const tokenContract = {
+      tokenContract = {
         ...this.tokenContract,
         ...{
           totalDeposit: totalDeposit,
