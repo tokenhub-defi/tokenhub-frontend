@@ -80,7 +80,9 @@ const MyTokenContainer = () => {
             </SuiBox>
           ),
           total_supply: humanize.numberFormat(t.total_supply / 10 ** t.decimals),
-          // allocated_num: humanize.numberFormat(t.allocated_num / 10 ** t.decimals),
+          allocated_num: humanize.numberFormat(
+            ((t.total_supply / 10 ** t.decimals) * t.allocated_percent) / 10000
+          ),
           claimable_amount: humanize.numberFormat(t.claimable_amount / 10 ** t.decimals),
           claimed: humanize.numberFormat(t.claimed / 10 ** t.decimals),
           // vesting_start_time: moment(t.vesting_start_time / 10 ** 6).format("DD/MM/YY hh:mm a"),
@@ -137,7 +139,7 @@ const MyTokenContainer = () => {
                 // { title: "Vesting Start Time", name: "vesting_start_time", align: "center" },
                 // { title: "Vesting End Time", name: "vesting_end_time", align: "center" },
                 // { title: "Vesting Interval (days)", name: "vesting_interval", align: "center" },
-                // { title: "Allocation", name: "allocated_num", align: "center" },
+                { title: "Allocation", name: "allocated_num", align: "center" },
                 { title: "Claimable", name: "claimable_amount", align: "center" },
                 { title: "Claimed", name: "claimed", align: "center" },
                 { title: "", name: "action", align: "right" },
