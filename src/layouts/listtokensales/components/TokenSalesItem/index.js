@@ -69,7 +69,7 @@ const TokenSalesItem = (props) => {
                   {
                     value: tokenData.totalDeposit.formatted_amount,
                     label: (
-                      <Box sx={{ mt: "-4rem", ml: "5rem" }}>
+                      <Box textAlign="right" sx={{ mt: "-4rem", ml: "-30rem" }}>
                         <SuiTypography component="p" variant="caption" fontWeight="bold">
                           Total raise
                         </SuiTypography>
