@@ -9,7 +9,7 @@ import SuiInput from "components/SuiInput";
 import SuiTypography from "components/SuiTypography";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import { useContext, useEffect, useState, useReducer } from "react";
+import { useContext, useEffect, useState, useReducer, useRef } from "react";
 import { humanize } from "humanize";
 import AddIcon from "@mui/icons-material/Add";
 import { LoadingButton } from "@mui/lab";
@@ -40,6 +40,9 @@ const CreateToken = (props) => {
   const [isAccountExist, setIsAccountExist] = useState(false);
   const [isAllocationValid, setIsAllocationValid] = useState(false);
   const initialAllocation = new Allocation();
+
+  const totalSuppyInputRef = useRef();
+  const decimalInputRef = useRef();
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/jpeg, image/png",
@@ -123,18 +126,26 @@ const CreateToken = (props) => {
 
   const handleInitialSupplyChange = (e) => {
     let tSupply = e.target.value;
-    if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
-    if (tSupply > MAX_TOTAL_SUPPLY) tSupply = MAX_TOTAL_SUPPLY;
+    if (totalSuppyInputRef.current.onChangeTimeout) clearTimeout(totalSuppyInputRef.current.onChangeTimeout);
+    totalSuppyInputRef.current.onChangeTimeout = setTimeout(() => {
+      if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
+      if (tSupply > MAX_TOTAL_SUPPLY) tSupply = MAX_TOTAL_SUPPLY;
+      setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
+      setToken({ ...token, ...{ initialSupply: tSupply } });
+    }, 500);
     setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
-    setToken({ ...token, ...{ initialSupply: tSupply } });
   };
 
   const handleDecimalChange = (e) => {
     let decimalT = e.target.value;
-    if (decimalT < MIN_DECIMAL) decimalT = MIN_DECIMAL;
-    if (decimalT > MAX_DECIMAL) decimalT = MAX_DECIMAL;
+    if (decimalInputRef.current.onChangeTimeout) clearTimeout(decimalInputRef.current.onChangeTimeout);
+    decimalInputRef.current.onChangeTimeout = setTimeout(() => {
+      if (decimalT < MIN_DECIMAL) decimalT = MIN_DECIMAL;
+      if (decimalT > MAX_DECIMAL) decimalT = MAX_DECIMAL;
+      setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
+      setToken({ ...token, ...{ decimal: decimalT } });
+    }, 500);
     setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
-    setToken({ ...token, ...{ decimal: decimalT } });
   };
 
   // const handleInitialReleasePercentChange = (e) => {
@@ -298,6 +309,7 @@ const CreateToken = (props) => {
                     <MenuItem value={100000000}>{humanize.numberFormat(100000000)}</MenuItem>
                   </Select> */}
                   <TextField
+                    ref={totalSuppyInputRef}
                     disabled={loading}
                     required
                     type="number"
@@ -329,6 +341,7 @@ const CreateToken = (props) => {
                     <MenuItem value={8}>8</MenuItem>
                   </Select> */}
                   <TextField
+                    ref={decimalInputRef}
                     disabled={loading}
                     required
                     type="number"

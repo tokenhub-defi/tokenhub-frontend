@@ -3,7 +3,7 @@ import { DateTimePicker, LocalizationProvider } from "@mui/lab";
 import SuiBox from "components/SuiBox";
 import SuiInput from "components/SuiInput";
 import SuiTypography from "components/SuiTypography";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import PropTypes from "prop-types";
 import { TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
@@ -17,6 +17,8 @@ const AllocationView = (props) => {
   const [vestingStartTime, setVestingStartTime] = useState(allocation.vestingStartTime);
   const [vestingDuration, setVestingDuration] = useState(allocation.vestingDuration);
   const [vestingInterval, setVestingInterval] = useState(allocation.vestingInterval);
+  const allocationInputRef = useRef();
+  const initialReleaseInputRef = useRef();
   useEffect(() => {
     onChange({
       ...allocation,
@@ -92,6 +94,7 @@ const AllocationView = (props) => {
               <MenuItem value={25}>25%</MenuItem>
             </Select> */}
             <TextField
+              ref={allocationInputRef}
               value={allocatedPercent}
               disabled={loading}
               type="number"
@@ -101,11 +104,20 @@ const AllocationView = (props) => {
                 min: 10,
               }}
               fullWidth
+              onFocus={(e) => { console.log("focus change", e) }}
               onChange={(e) => {
                 let alPercent = e.target.value;
-                if (alPercent < parseInt(e.target.min, 10)) alPercent = e.target.min;
-                if (alPercent > parseInt(e.target.max, 10)) alPercent = e.target.max;
-                setAllocatedPercent(parseFloat(alPercent).toFixed(2));
+                if (allocationInputRef.current.onChangeTimeout) clearTimeout(allocationInputRef.current.onChangeTimeout);
+                allocationInputRef.current.onChangeTimeout = setTimeout(() => {
+                  if (parseFloat(alPercent) < parseFloat(e.target.min)) alPercent = e.target.min;
+                  if (parseFloat(alPercent) > parseFloat(e.target.max)) alPercent = e.target.max;
+                  const alPercentString = alPercent.toString().split('.');
+                  if (alPercentString.length > 1 && alPercentString[1].length > 2) {
+                    alPercent = parseFloat(alPercent).toFixed(2);
+                  }
+                  setAllocatedPercent(alPercent);
+                }, 500);
+                setAllocatedPercent(alPercent);
               }}
             />
           </SuiBox>
@@ -136,6 +148,7 @@ const AllocationView = (props) => {
               }}
             /> */}
             <TextField
+              ref={initialReleaseInputRef}
               value={initialRelease}
               disabled={loading}
               type="number"
@@ -147,9 +160,17 @@ const AllocationView = (props) => {
               fullWidth
               onChange={(e) => {
                 let inRe = e.target.value;
-                if (inRe < parseInt(e.target.min, 10)) inRe = e.target.min;
-                if (inRe > parseInt(e.target.max, 10)) inRe = e.target.max;
-                inRe = parseFloat(inRe, 10).toFixed(2);
+                console.log(inRe);
+                if (initialReleaseInputRef.current.onChangeTimeout) clearTimeout(initialReleaseInputRef.current.onChangeTimeout);
+                initialReleaseInputRef.current.onChangeTimeout = setTimeout(() => {
+                  if (parseFloat(inRe, 10) < parseFloat(e.target.min, 10)) inRe = e.target.min;
+                  if (parseFloat(inRe, 10) > parseFloat(e.target.max, 10)) inRe = e.target.max;
+                  const inReString = inRe.toString().split('.');
+                  if (inReString.length > 1 && inReString[1].length > 2) {
+                    inRe = parseFloat(inRe).toFixed(2);
+                  }
+                  setInitialRelease(inRe);
+                }, 500);
                 setInitialRelease(inRe);
               }}
             />
