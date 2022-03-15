@@ -48,8 +48,8 @@ const TokenSalesContainer = () => {
     let campaign = null;
 
     if (saleId) {
-      tokenSalesStore.setAccountId(saleId);
       campaign = await getCampaign();
+      tokenSalesStore.setAccountId(campaign.sale_contract);
     }
     if (tokenStore.accountId && campaign) {
       init(campaign.sale_contract);
@@ -58,6 +58,7 @@ const TokenSalesContainer = () => {
 
   useEffect(() => {
     if (tokenContract?.tokenPeriod) {
+      console.log("token contract", tokenContract);
       switch (tokenContract.tokenPeriod) {
         case "NOT_STARTED":
           {
@@ -68,7 +69,7 @@ const TokenSalesContainer = () => {
               if (startInterval <= 0) {
                 clearInterval(window.startInterval);
                 setStartCountdown(null);
-                await tokenSalesStore.fetchContractStatus(tokenState.contract);
+                await tokenSalesStore.fetchContractStatus(tokenState.contract.contractId);
               }
             }, 1000);
             setStartCountdown(tokenSalesStore.getStartTime());
@@ -83,7 +84,7 @@ const TokenSalesContainer = () => {
               if (salesInterval <= 0) {
                 clearInterval(window.salesInterval);
                 setSaleCountdown(null);
-                await tokenSalesStore.fetchContractStatus(tokenState.contract);
+                await tokenSalesStore.fetchContractStatus(tokenState.contract.contractId);
               }
             }, 1000);
             setSaleCountdown(tokenSalesStore.getSalesEndTime());
@@ -98,7 +99,7 @@ const TokenSalesContainer = () => {
               if (graceInterval <= 0) {
                 clearInterval(window.graceInterval);
                 setGraceCountdown(null);
-                await tokenSalesStore.fetchContractStatus(tokenState.contract);
+                await tokenSalesStore.fetchContractStatus(tokenState.contract.contractId);
               }
             }, 1000);
             setGraceCountdown(tokenSalesStore.getRedeemEndTime());

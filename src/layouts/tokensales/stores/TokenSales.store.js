@@ -176,7 +176,7 @@ export class TokenSalesStore {
         "ft_metadata"
       );
       tokenContract = {
-        ...this.tokenContract,
+        ...tokenContract,
         ...{
           totalDeposit: totalDeposit,
           tokenPeriod: tokenPeriod,
