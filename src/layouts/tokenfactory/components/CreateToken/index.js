@@ -134,6 +134,7 @@ const CreateToken = (props) => {
       setToken({ ...token, ...{ initialSupply: tSupply } });
     }, 500);
     setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
+    setToken({ ...token, ...{ initialSupply: tSupply } });
   };
 
   const handleDecimalChange = (e) => {
@@ -146,6 +147,7 @@ const CreateToken = (props) => {
       setToken({ ...token, ...{ decimal: decimalT } });
     }, 500);
     setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
+    setToken({ ...token, ...{ decimal: decimalT } });
   };
 
   // const handleInitialReleasePercentChange = (e) => {
