@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable camelcase */
 /* eslint-disable arrow-body-style */
 // import { light } from "@mui/material/styles/createPalette";
@@ -14,6 +15,7 @@ import moment from "moment";
 import { TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
 import { useHistory, useLocation } from "react-router-dom";
+import { Link, Typography } from "@mui/material";
 import CreateToken from "../CreateToken";
 import TokenFactoryStepper from "../TokenFactoryStepper";
 
@@ -127,7 +129,7 @@ const TokenFactoryContainer = () => {
             });
             const res = await tokenFactoryStore.initTokenAllocation();
             if (res) {
-              initNewToken();
+              // initNewToken();
               // allocation_initialized = 1;
               queryParams.delete("resume_token");
               queryParams.delete("transactionHashes");
@@ -137,16 +139,32 @@ const TokenFactoryContainer = () => {
 
               setAlert({
                 open: true,
-                message: "Create Token Success",
+                message: (
+                  <>
+                    <Typography variant="h5" color="#fff">
+                      Create token success. Do you want{" "}
+                      <Link
+                        component="button"
+                        color="primary"
+                        variant="h5"
+                        onClick={() => {
+                          tokenFactoryStore.setActiveStep(-1);
+                          initNewToken();
+                          setAlert({
+                            open: false,
+                            message: "",
+                            color: "success",
+                          });
+                        }}
+                      >
+                        create new token
+                      </Link>{" "}
+                      ?
+                    </Typography>
+                  </>
+                ),
                 color: "success",
               });
-              setTimeout(() => {
-                setAlert({
-                  open: false,
-                  message: "",
-                  color: "success",
-                });
-              }, 3000);
             }
           }
         }

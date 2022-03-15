@@ -2,14 +2,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Card, Grid, MenuItem, Select, Table } from "@mui/material";
+import { Card, Grid, MenuItem, Select, Table, TextField } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import SuiInput from "components/SuiInput";
 import SuiTypography from "components/SuiTypography";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import { useContext, useEffect, useState, useReducer } from "react";
+import { useContext, useEffect, useState, useReducer, useRef } from "react";
 import { humanize } from "humanize";
 import AddIcon from "@mui/icons-material/Add";
 import { LoadingButton } from "@mui/lab";
@@ -21,7 +21,12 @@ import { resizeImage } from "helpers/TokenUltis";
 import { Allocation, TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
 import AllocationView from "../Allocation";
+import "./createToken.scss";
 
+const MIN_DECIMAL = 8;
+const MAX_DECIMAL = 24;
+const MIN_TOTAL_SUPPLY = 10000;
+const MAX_TOTAL_SUPPLY = 10000000000000000000;
 const CreateToken = (props) => {
   const { setAlert, token, setToken, isResume } = props;
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
@@ -35,7 +40,9 @@ const CreateToken = (props) => {
   const [isAccountExist, setIsAccountExist] = useState(false);
   const [isAllocationValid, setIsAllocationValid] = useState(false);
   const initialAllocation = new Allocation();
-  const [allocationRows, setAllocationRows] = useState([]);
+
+  const totalSuppyInputRef = useRef();
+  const decimalInputRef = useRef();
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/jpeg, image/png",
@@ -61,7 +68,6 @@ const CreateToken = (props) => {
         tokenFactoryStore.registerParams.deployer_contract
       );
     } catch (error) {
-      console.log("checkTokenValidation", error);
       if (error?.type !== "AccountDoesNotExist") {
         isValid = false;
         setIsAccountExist(true);
@@ -102,7 +108,6 @@ const CreateToken = (props) => {
           sum += parseInt(al.allocatedPercent, 10);
           if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
         });
-        console.log("SumAllocation", sum);
         setIsAllocationValid(sum === 100 && isAllAccountFilled);
       }
     }
@@ -120,13 +125,27 @@ const CreateToken = (props) => {
   };
 
   const handleInitialSupplyChange = (e) => {
-    setTotalSupply(e.target.value * 10 ** tokenFactoryStore.token.decimal);
-    setToken({ ...token, ...{ initialSupply: e.target.value } });
+    let tSupply = e.target.value;
+    if (totalSuppyInputRef.current.onChangeTimeout) clearTimeout(totalSuppyInputRef.current.onChangeTimeout);
+    totalSuppyInputRef.current.onChangeTimeout = setTimeout(() => {
+      if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
+      if (tSupply > MAX_TOTAL_SUPPLY) tSupply = MAX_TOTAL_SUPPLY;
+      setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
+      setToken({ ...token, ...{ initialSupply: tSupply } });
+    }, 500);
+    setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
   };
 
   const handleDecimalChange = (e) => {
-    setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** e.target.value);
-    setToken({ ...token, ...{ decimal: e.target.value } });
+    let decimalT = e.target.value;
+    if (decimalInputRef.current.onChangeTimeout) clearTimeout(decimalInputRef.current.onChangeTimeout);
+    decimalInputRef.current.onChangeTimeout = setTimeout(() => {
+      if (decimalT < MIN_DECIMAL) decimalT = MIN_DECIMAL;
+      if (decimalT > MAX_DECIMAL) decimalT = MAX_DECIMAL;
+      setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
+      setToken({ ...token, ...{ decimal: decimalT } });
+    }, 500);
+    setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
   };
 
   // const handleInitialReleasePercentChange = (e) => {
@@ -166,7 +185,6 @@ const CreateToken = (props) => {
         setLoading(false);
       }, 3000);
     } catch (error) {
-      console.log("handleRegisterToken", error);
       setLoading(false);
       setAlert({
         open: true,
@@ -282,45 +300,61 @@ const CreateToken = (props) => {
                       <Grid item xs={6} alignContent="end" alignItems="end"></Grid> */}
                     </Grid>
                   </SuiBox>
-                  <Select
+                  {/* <Select
                     disabled={loading}
                     value={tokenFactoryStore.token.initialSupply}
                     onChange={handleInitialSupplyChange}
                     input={<SuiInput />}
                   >
                     <MenuItem value={100000000}>{humanize.numberFormat(100000000)}</MenuItem>
-                  </Select>
-                  {/* <SuiInput
+                  </Select> */}
+                  <TextField
+                    ref={totalSuppyInputRef}
                     disabled={loading}
                     required
                     type="number"
-                    placeholder="Initial Supply"
+                    placeholder="Total Supply"
+                    className="total-supply"
                     value={tokenFactoryStore.token.initialSupply}
                     // defaultValue={tokenFactoryStore.token.initialSupply}
                     onChange={handleInitialSupplyChange}
-                  /> */}
+                    inputProps={{
+                      inputMode: "numeric",
+                      min: MIN_TOTAL_SUPPLY,
+                      max: MAX_TOTAL_SUPPLY,
+                    }}
+                    fullWidth
+                  />
                 </SuiBox>
                 <SuiBox mb={2}>
                   <SuiBox mb={1} ml={0.5}>
                     <SuiTypography component="label" variant="caption" fontWeight="bold">
-                      Decimals (1-18)
+                      Decimals (8-24)
                     </SuiTypography>
                   </SuiBox>
-                  <Select
+                  {/* <Select
                     disabled={loading}
                     value={tokenFactoryStore.token.decimal}
                     onChange={handleDecimalChange}
                     input={<SuiInput />}
                   >
                     <MenuItem value={8}>8</MenuItem>
-                  </Select>
-                  {/* <SuiInput
+                  </Select> */}
+                  <TextField
+                    ref={decimalInputRef}
                     disabled={loading}
                     required
                     type="number"
-                    defaultValue={tokenFactoryStore.token.decimal}
+                    className="decimal"
+                    value={tokenFactoryStore.token.decimal}
                     onChange={handleDecimalChange}
-                  /> */}
+                    inputProps={{
+                      inputMode: "numeric",
+                      min: MIN_DECIMAL,
+                      max: MAX_DECIMAL,
+                    }}
+                    fullWidth
+                  />
                 </SuiBox>
               </SuiBox>
             </Grid>
@@ -331,23 +365,6 @@ const CreateToken = (props) => {
                     Allocations
                   </SuiTypography>
                 </SuiBox>
-              </SuiBox>
-              <SuiBox mb={2}>
-                <Table
-                  columns={[
-                    { title: "Token Name", name: "token_name", align: "left" },
-                    { title: "Symbol", name: "symbol", align: "left" },
-                    { title: "Total Supply", name: "total_supply", align: "left" },
-                    // { title: "Vesting Start Time", name: "vesting_start_time", align: "center" },
-                    // { title: "Vesting End Time", name: "vesting_end_time", align: "center" },
-                    // { title: "Vesting Interval (days)", name: "vesting_interval", align: "center" },
-                    // { title: "Allocation", name: "allocated_num", align: "center" },
-                    { title: "Claimable", name: "claimable_amount", align: "center" },
-                    { title: "Claimed", name: "claimed", align: "center" },
-                    { title: "", name: "action", align: "right" },
-                  ]}
-                  rows={allocationRows}
-                />
               </SuiBox>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 {token.allocationList.map((tk, index) => (

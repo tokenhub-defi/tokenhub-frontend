@@ -150,6 +150,7 @@ export class TokenFactoryStore {
       checkExistenceToken: action,
       getListToken: action,
       getListAllTokenContracts: action,
+      setActiveStep: action,
 
       setAllocations: action,
       registerParams: computed,
@@ -206,7 +207,7 @@ export class TokenFactoryStore {
   };
 
   register = async () => {
-    this.activeStep = 0;
+    this.setActiveStep(0);
     // console.log(this.contract);
     // localStorage.setItem(LOCAL_STORAGE_CURRENT_TOKEN, JSON.stringify(this.token));
     const value = await this.contract.register(
@@ -219,7 +220,7 @@ export class TokenFactoryStore {
   };
 
   createContract = async () => {
-    this.activeStep = 1;
+    this.setActiveStep(1);
     const value = await this.contract.create_ft_contract(this.registerParams, this.DEFAULT_GAS);
     // console.log("create_ft_contract : ", value);
     const current = { ...{}, ...this.registerParams };
@@ -230,7 +231,7 @@ export class TokenFactoryStore {
   };
 
   createDeployerContract = async () => {
-    this.activeStep = 2;
+    this.setActiveStep(2);
     const value = await this.contract.create_deployer_contract(
       this.registerParams,
       this.DEFAULT_GAS
@@ -244,7 +245,7 @@ export class TokenFactoryStore {
   };
 
   issue = async () => {
-    this.activeStep = 3;
+    this.setActiveStep(3);
     const value = await this.contract.issue_ft(this.registerParams, this.DEFAULT_GAS);
     // console.log("issue_ft : ", value);
     const current = { ...{}, ...this.registerParams };
@@ -255,14 +256,14 @@ export class TokenFactoryStore {
   };
 
   initTokenAllocation = async () => {
-    this.activeStep = 4;
+    this.setActiveStep(4);
     const value = await this.contract.init_token_allocation(this.registerParams, this.DEFAULT_GAS);
     // console.log("init_token_allocation : ", value);
     const current = { ...{}, ...this.registerParams };
     current.init_token_allocation = value;
     this.appendRegisteredToken(current);
     // this.clearLocalStorageToken();
-    this.activeStep = -1;
+    this.setActiveStep(5);
     console.log("initTokenAllocation", value);
     return value;
   };
@@ -528,6 +529,10 @@ export class TokenFactoryStore {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  setActiveStep = (step) => {
+    this.activeStep = step;
   };
 
   get registerParams() {
