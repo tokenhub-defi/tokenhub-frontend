@@ -82,17 +82,7 @@ const AllocationView = (props) => {
                 Allocation (%)
               </SuiTypography>
             </SuiBox>
-            {/* <Select
-              value={allocatedPercent}
-              onChange={(e) => {
-                setAllocatedPercent(e.target.value);
-              }}
-              input={<SuiInput />}
-            >
-              <MenuItem value={15}>15%</MenuItem>
-              <MenuItem value={20}>20%</MenuItem>
-              <MenuItem value={25}>25%</MenuItem>
-            </Select> */}
+
             <TextField
               ref={allocationInputRef}
               value={allocatedPercent}
@@ -104,19 +94,9 @@ const AllocationView = (props) => {
                 min: 10,
               }}
               fullWidth
-              onFocus={(e) => { console.log("focus change", e) }}
               onChange={(e) => {
-                let alPercent = e.target.value;
-                if (allocationInputRef.current.onChangeTimeout) clearTimeout(allocationInputRef.current.onChangeTimeout);
-                allocationInputRef.current.onChangeTimeout = setTimeout(() => {
-                  if (parseFloat(alPercent) < parseFloat(e.target.min)) alPercent = e.target.min;
-                  if (parseFloat(alPercent) > parseFloat(e.target.max)) alPercent = e.target.max;
-                  const alPercentString = alPercent.toString().split('.');
-                  if (alPercentString.length > 1 && alPercentString[1].length > 2) {
-                    alPercent = parseFloat(alPercent).toFixed(2);
-                  }
-                  setAllocatedPercent(alPercent);
-                }, 500);
+                const alPercent = e.target.value;
+
                 setAllocatedPercent(alPercent);
               }}
             />
@@ -129,24 +109,7 @@ const AllocationView = (props) => {
                 Initial Release (%)
               </SuiTypography>
             </SuiBox>
-            {/* <Select
-              value={initialRelease}
-              onChange={(e) => {
-                setInitialRelease(e.target.value);
-              }}
-              input={<SuiInput />}
-            >
-              <MenuItem value={8}>8%</MenuItem>
-              <MenuItem value={10}>10%</MenuItem>
-              <MenuItem value={15}>15%</MenuItem>
-            </Select> */}
-            {/* <SuiInput
-              value={initialRelease}
-              type="number"
-              onChange={(e) => {
-                setInitialRelease(e.target.value);
-              }}
-            /> */}
+
             <TextField
               ref={initialReleaseInputRef}
               value={initialRelease}
@@ -159,18 +122,8 @@ const AllocationView = (props) => {
               }}
               fullWidth
               onChange={(e) => {
-                let inRe = e.target.value;
-                console.log(inRe);
-                if (initialReleaseInputRef.current.onChangeTimeout) clearTimeout(initialReleaseInputRef.current.onChangeTimeout);
-                initialReleaseInputRef.current.onChangeTimeout = setTimeout(() => {
-                  if (parseFloat(inRe, 10) < parseFloat(e.target.min, 10)) inRe = e.target.min;
-                  if (parseFloat(inRe, 10) > parseFloat(e.target.max, 10)) inRe = e.target.max;
-                  const inReString = inRe.toString().split('.');
-                  if (inReString.length > 1 && inReString[1].length > 2) {
-                    inRe = parseFloat(inRe).toFixed(2);
-                  }
-                  setInitialRelease(inRe);
-                }, 500);
+                const inRe = e.target.value;
+
                 setInitialRelease(inRe);
               }}
             />
@@ -202,19 +155,7 @@ const AllocationView = (props) => {
                 Vesting Duration (days)
               </SuiTypography>
             </SuiBox>
-            {/* <Select
-              value={vestingDuration}
-              disabled={loading}
-              onChange={(e) => {
-                setVestingDuration(e.target.value);
-              }}
-              input={<SuiInput />}
-            >
-              <MenuItem value={1}>1</MenuItem>
-              <MenuItem value={4}>4</MenuItem>
-              <MenuItem value={7}>7</MenuItem>
-            <MenuItem value={30}>30</MenuItem>
-            </Select> */}
+
             <TextField
               value={vestingDuration}
               disabled={loading}
@@ -234,17 +175,7 @@ const AllocationView = (props) => {
                 Vesting Interval (Days)
               </SuiTypography>
             </SuiBox>
-            {/* <Select
-              value={vestingInterval}
-              disabled={loading}
-              onChange={(e) => {
-                setVestingInterval(e.target.value);
-              }}
-              input={<SuiInput />}
-            >
-              <MenuItem value={1}>1</MenuItem>
-              <MenuItem value={7}>7</MenuItem>
-            </Select> */}
+
             <TextField
               value={vestingInterval}
               disabled={loading}

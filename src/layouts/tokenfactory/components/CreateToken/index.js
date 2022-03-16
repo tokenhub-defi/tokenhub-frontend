@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Card, Grid, MenuItem, Select, Table, TextField } from "@mui/material";
+import { Box, Card, Grid, List, ListItem, ListItemText, TextField } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import SuiInput from "components/SuiInput";
@@ -13,13 +13,22 @@ import { useContext, useEffect, useState, useReducer, useRef } from "react";
 import { humanize } from "humanize";
 import AddIcon from "@mui/icons-material/Add";
 import { LoadingButton } from "@mui/lab";
-import moment from "moment";
 import { observer } from "mobx-react";
-import { AddAPhotoOutlined, BackupOutlined, DeleteOutlined } from "@mui/icons-material";
+import { v4 } from "uuid";
+import {
+  AddAPhotoOutlined,
+  BackupOutlined,
+  DeleteOutlined,
+  ErrorOutline,
+  PriorityHigh,
+  PriorityHighOutlined,
+  PriorityHighRounded,
+} from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
 import { resizeImage } from "helpers/TokenUltis";
 import { Allocation, TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
+import SuiAlert from "components/SuiAlert";
 import AllocationView from "../Allocation";
 import "./createToken.scss";
 
@@ -31,14 +40,19 @@ const CreateToken = (props) => {
   const { setAlert, token, setToken, isResume } = props;
   const { tokenFactoryStore } = useContext(TokenFactoryContext);
   const { tokenStore } = tokenFactoryStore;
-  const [vestingStartTime, setVestingStartTime] = useState();
-  const [vestingEndTime, setVestingEndTime] = useState(moment().add(30, "days"));
   // eslint-disable-next-line react/destructuring-assignment
   const [loading, setLoading] = useState(props.loading || false);
   const [totalSupply, setTotalSupply] = useState(tokenFactoryStore.registerParams.total_supply);
-  const [tokenValidation, setTokenValidation] = useState(false);
-  const [isAccountExist, setIsAccountExist] = useState(false);
-  const [isAllocationValid, setIsAllocationValid] = useState(false);
+  const [tokenValidation, setTokenValidation] = useReducer(
+    (state, newState) => ({ ...state, ...newState }),
+    {
+      isTokenNameEmpty: false,
+      isTokenSymbolEmpty: false,
+      isAccountExist: false,
+      sumAllocation: 100,
+      notValidAllocation: [],
+    }
+  );
   const initialAllocation = new Allocation();
 
   const totalSuppyInputRef = useRef();
@@ -56,7 +70,7 @@ const CreateToken = (props) => {
 
   const { ref, ...rootProps } = getRootProps();
 
-  const checkTokenValidation = async () => {
+  const validateTokenSymbol = async () => {
     let isValid = true;
     if (!tokenFactoryStore.token.tokenName || !tokenFactoryStore.token.symbol) {
       isValid = false;
@@ -70,51 +84,45 @@ const CreateToken = (props) => {
     } catch (error) {
       if (error?.type !== "AccountDoesNotExist") {
         isValid = false;
-        setIsAccountExist(true);
       }
     }
 
     return isValid;
   };
 
+  const validateTokenAllocation = () => {
+    const notValid = [];
+    let sum = 0;
+
+    token.allocationList.forEach((item) => {
+      let isValid = true;
+      if (_.isEmpty(item.accountId)) isValid = false;
+      if (parseFloat(item.allocatedPercent) > 100 || parseFloat(item.allocatedPercent) < 1) {
+        isValid = false;
+      }
+      if (
+        parseFloat(item.initialRelease) > 100 ||
+        parseFloat(item.initialRelease) < 1 ||
+        parseFloat(item.initialRelease) > parseFloat(item.allocatedPercent)
+      ) {
+        isValid = false;
+      }
+      sum += parseInt(item.allocatedPercent, 10);
+
+      if (!isValid) {
+        notValid.push(item);
+      }
+    });
+
+    return {
+      NotValidAllocation: notValid,
+      Sum: sum,
+    };
+  };
+
   useEffect(() => {
     setLoading(tokenFactoryStore.activeStep > -1 && tokenFactoryStore.activeStep <= 4);
   }, [tokenFactoryStore.activeStep]);
-
-  useEffect(() => {
-    setTokenValidation(false);
-    setIsAccountExist(false);
-    if (!isResume) {
-      if (!_.isEmpty(tokenFactoryStore.token.symbol)) {
-        if (window.delayCheckTokenValidation) clearTimeout(window.delayCheckTokenValidation);
-        window.delayCheckTokenValidation = setTimeout(async () => {
-          const res = await checkTokenValidation();
-          setTokenValidation(res);
-          setIsAccountExist(!res);
-        }, 500);
-      }
-    }
-  }, [tokenFactoryStore.token.symbol]);
-
-  // Validate allocationList
-  useEffect(() => {
-    let isSumming = false;
-    setIsAllocationValid(true);
-    if (!isResume) {
-      let sum = 0;
-      let isAllAccountFilled = true;
-      if (!isSumming) {
-        token.allocationList.forEach((al) => {
-          sum += parseInt(al.allocatedPercent, 10);
-          if (_.isEmpty(al.accountId)) isAllAccountFilled = false;
-        });
-        setIsAllocationValid(sum === 100 && isAllAccountFilled);
-      }
-    }
-    return () => {
-      isSumming = true;
-    };
-  }, [token.allocationList]);
 
   const handleTokenNameChange = (e) => {
     setToken({ ...token, ...{ tokenName: e.target.value } });
@@ -125,61 +133,49 @@ const CreateToken = (props) => {
   };
 
   const handleInitialSupplyChange = (e) => {
-    let tSupply = e.target.value;
-    if (totalSuppyInputRef.current.onChangeTimeout) clearTimeout(totalSuppyInputRef.current.onChangeTimeout);
-    totalSuppyInputRef.current.onChangeTimeout = setTimeout(() => {
-      if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
-      if (tSupply > MAX_TOTAL_SUPPLY) tSupply = MAX_TOTAL_SUPPLY;
-      setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
-      setToken({ ...token, ...{ initialSupply: tSupply } });
-    }, 500);
+    const tSupply = e.target.value;
+    // if (totalSuppyInputRef.current.onChangeTimeout) clearTimeout(totalSuppyInputRef.current.onChangeTimeout);
+    // totalSuppyInputRef.current.onChangeTimeout = setTimeout(() => {
+    //   if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
+    //   if (tSupply > MAX_TOTAL_SUPPLY) tSupply = MAX_TOTAL_SUPPLY;
+    //   setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
+    //   setToken({ ...token, ...{ initialSupply: tSupply } });
+    // }, 500);
     setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
     setToken({ ...token, ...{ initialSupply: tSupply } });
   };
 
   const handleDecimalChange = (e) => {
-    let decimalT = e.target.value;
-    if (decimalInputRef.current.onChangeTimeout) clearTimeout(decimalInputRef.current.onChangeTimeout);
-    decimalInputRef.current.onChangeTimeout = setTimeout(() => {
-      if (decimalT < MIN_DECIMAL) decimalT = MIN_DECIMAL;
-      if (decimalT > MAX_DECIMAL) decimalT = MAX_DECIMAL;
-      setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
-      setToken({ ...token, ...{ decimal: decimalT } });
-    }, 500);
+    const decimalT = e.target.value;
+    // if (decimalInputRef.current.onChangeTimeout) clearTimeout(decimalInputRef.current.onChangeTimeout);
+    // decimalInputRef.current.onChangeTimeout = setTimeout(() => {
+    //   if (decimalT < MIN_DECIMAL) decimalT = MIN_DECIMAL;
+    //   if (decimalT > MAX_DECIMAL) decimalT = MAX_DECIMAL;
+    //   setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
+    //   setToken({ ...token, ...{ decimal: decimalT } });
+    // }, 500);
     setTotalSupply(tokenFactoryStore.token.initialSupply * 10 ** decimalT);
     setToken({ ...token, ...{ decimal: decimalT } });
   };
 
-  // const handleInitialReleasePercentChange = (e) => {
-  //   tokenFactoryStore.setToken({ initialRelease: e.target.value });
-  // };
-
-  // const handleTreasuryPercentChange = (e) => {
-  //   tokenFactoryStore.setToken({ treasury: e.target.value });
-  // };
-
-  // const handleVestingStartTimeChange = (value) => {
-  //   setVestingStartTime(value);
-  //   tokenFactoryStore.setToken({ vestingStartTime: value });
-  // };
-
-  // const handleVestingEndTimeChange = (value) => {
-  //   setVestingEndTime(value);
-  //   tokenFactoryStore.setToken({ vestingEndTime: value });
-  // };
-
-  // const handleVestingDurationChange = (e) => {
-  //   setVestingEndTime(
-  //     moment(vestingStartTime).add(e.target.value, "days").format("DD/MM/YY hh:mm a")
-  //   );
-  //   tokenFactoryStore.setToken({ vestingDuration: e.target.value });
-  // };
-
-  // const handleVestingIntervalChange = (e) => {
-  //   tokenFactoryStore.setToken({ vestingInterval: e.target.value });
-  // };
+  const validateNewToken = async () => {
+    const allocationValid = validateTokenAllocation();
+    const symbolValid = await validateTokenSymbol();
+    setTokenValidation({
+      isTokenNameEmpty: _.isEmpty(token.tokenName),
+      isTokenSymbolEmpty: _.isEmpty(token.symbol),
+      isAccountExist: symbolValid,
+      sumAllocation: allocationValid.Sum,
+      notValidAllocation: allocationValid.NotValidAllocation,
+    });
+    return (
+      symbolValid && allocationValid.Sum === 100 && allocationValid.NotValidAllocation?.length === 0
+    );
+  };
 
   const handleRegisterToken = async () => {
+    const isTokenValid = await validateNewToken();
+    if (!isTokenValid) return;
     try {
       setLoading(true);
       await tokenFactoryStore.register();
@@ -196,6 +192,55 @@ const CreateToken = (props) => {
     }
   };
 
+  const buildAllocationView = () => {
+    const views = token.allocationList.map((tk, index) => {
+      let notValidCss = {};
+      if (tokenValidation.notValidAllocation.findIndex((tv) => tv.id === tk.id) > -1) {
+        notValidCss = { border: "1px solid red" };
+      }
+      return (
+        <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
+          <Card sx={{ ...{ p: 2, boxShadow: 4 }, ...notValidCss }}>
+            <AllocationView
+              allocation={tk}
+              loading={loading}
+              onChange={(allocation) => {
+                const alCache = [...token.allocationList];
+                const i = token.allocationList.findIndex((al) => al.id === allocation.id);
+                if (i > -1) {
+                  alCache[i] = allocation;
+                  console.log(alCache);
+                  const t = { ...token };
+                  t.allocationList = alCache;
+                  setToken(t);
+                }
+              }}
+              tokenStore={tokenStore}
+            />
+            {tk.accountId !== TREASURY_ACCOUNT && tk.accountId !== tokenStore.accountId && (
+              <SuiBox sx={{ textAlign: "center" }}>
+                <SuiButton
+                  disabled={loading}
+                  color="error"
+                  variant="outlined"
+                  onClick={() => {
+                    const t = { ...token };
+                    t.allocationList = token.allocationList.filter((al) => al.id !== tk.id);
+
+                    setToken(t);
+                  }}
+                >
+                  <DeleteRoundedIcon />
+                </SuiButton>
+              </SuiBox>
+            )}
+          </Card>
+        </Grid>
+      );
+    });
+    return views;
+  };
+
   return (
     <Grid container justifyContent="center" alignItems="center">
       <Grid item xs={12} md={10} lg={10}>
@@ -209,19 +254,6 @@ const CreateToken = (props) => {
                       <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
                         Token Name
                       </SuiTypography>
-                      {isAccountExist &&
-                        !isResume(
-                          <SuiTypography
-                            component="h4"
-                            variant="caption"
-                            align="right"
-                            sx={{ color: "#f44336", fontWeight: "600", fontStyle: "italic" }}
-                          >
-                            {tokenFactoryStore.token.symbol} already existed !
-                          </SuiTypography>
-                        )}
-                      {/* <Grid item xs={6} alignContent="start"></Grid>
-                      <Grid item xs={6} alignContent="end" alignItems="end"></Grid> */}
                     </Grid>
                   </SuiBox>
                   <SuiInput
@@ -232,7 +264,8 @@ const CreateToken = (props) => {
                     onChange={handleTokenNameChange}
                     value={tokenFactoryStore.token.tokenName}
                     sx={
-                      isAccountExist && !isResume
+                      (tokenValidation.isAccountExist || tokenValidation.isTokenNameEmpty) &&
+                      !isResume
                         ? { border: "1px solid red" }
                         : { border: "inherited" }
                     }
@@ -253,7 +286,12 @@ const CreateToken = (props) => {
                         placeholder="Symbol"
                         onChange={handleSymbolChange}
                         value={tokenFactoryStore.token.symbol}
-                        sx={isAccountExist ? { border: "1px solid red" } : { border: "inherited" }}
+                        sx={
+                          (tokenValidation.isAccountExist || tokenValidation.isTokenSymbolEmpty) &&
+                          !isResume
+                            ? { border: "1px solid red" }
+                            : { border: "inherited" }
+                        }
                       />
                     </Grid>
                     <Grid item xs={6} sx={{ pr: 1 }}>
@@ -275,7 +313,6 @@ const CreateToken = (props) => {
                       {tokenFactoryStore.token.icon && !loading && (
                         <DeleteOutlined
                           sx={{ float: "right" }}
-                          fontSize="medium"
                           disabled={loading}
                           onClick={() => {
                             tokenFactoryStore.token.icon = null;
@@ -298,18 +335,9 @@ const CreateToken = (props) => {
                       <SuiTypography component="label" variant="caption" align="right" color="red">
                         ~ {humanize.numberFormat(totalSupply)}
                       </SuiTypography>
-                      {/* <Grid item xs={6} alignContent="start"></Grid>
-                      <Grid item xs={6} alignContent="end" alignItems="end"></Grid> */}
                     </Grid>
                   </SuiBox>
-                  {/* <Select
-                    disabled={loading}
-                    value={tokenFactoryStore.token.initialSupply}
-                    onChange={handleInitialSupplyChange}
-                    input={<SuiInput />}
-                  >
-                    <MenuItem value={100000000}>{humanize.numberFormat(100000000)}</MenuItem>
-                  </Select> */}
+
                   <TextField
                     ref={totalSuppyInputRef}
                     disabled={loading}
@@ -334,14 +362,7 @@ const CreateToken = (props) => {
                       Decimals (8-24)
                     </SuiTypography>
                   </SuiBox>
-                  {/* <Select
-                    disabled={loading}
-                    value={tokenFactoryStore.token.decimal}
-                    onChange={handleDecimalChange}
-                    input={<SuiInput />}
-                  >
-                    <MenuItem value={8}>8</MenuItem>
-                  </Select> */}
+
                   <TextField
                     ref={decimalInputRef}
                     disabled={loading}
@@ -369,52 +390,12 @@ const CreateToken = (props) => {
                 </SuiBox>
               </SuiBox>
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                {token.allocationList.map((tk, index) => (
-                  <Grid key={(tk.id + index).toString()} item xs={12} md={6} lg={4}>
-                    <Card sx={{ p: 2, boxShadow: 4 }}>
-                      <AllocationView
-                        allocation={tk}
-                        loading={loading}
-                        onChange={(allocation) => {
-                          const alCache = [...token.allocationList];
-                          const i = token.allocationList.findIndex((al) => al.id === allocation.id);
-                          if (i > -1) {
-                            alCache[i] = allocation;
-                            console.log(alCache);
-                            const t = { ...token };
-                            t.allocationList = alCache;
-                            setToken(t);
-                          }
-                        }}
-                        tokenStore={tokenStore}
-                      />
-                      {tk.accountId !== TREASURY_ACCOUNT && tk.accountId !== tokenStore.accountId && (
-                        <SuiBox sx={{ textAlign: "center" }}>
-                          <SuiButton
-                            disabled={loading}
-                            color="error"
-                            variant="outlined"
-                            onClick={() => {
-                              const t = { ...token };
-                              t.allocationList = token.allocationList.filter(
-                                (al) => al.id !== tk.id
-                              );
-
-                              setToken(t);
-                            }}
-                          >
-                            <DeleteRoundedIcon />
-                          </SuiButton>
-                        </SuiBox>
-                      )}
-                    </Card>
-                  </Grid>
-                ))}
+                {buildAllocationView()}
                 <Grid key="add-more-allocation" item xs={12} md={6} lg={4}>
                   <SuiBox>
                     <SuiButton
                       color="primary"
-                      disabled={!isAllocationValid || loading}
+                      disabled={loading}
                       variant="gradient"
                       onClick={() => {
                         const t = { ...token };
@@ -436,21 +417,58 @@ const CreateToken = (props) => {
                 </Grid>
               </Grid>
             </Grid>
-            <SuiBox mt={4} mb={1}>
+            <SuiBox mt={2} mb={2}>
               {tokenStore.isSignedIn ? (
-                <>
-                  {!isAllocationValid && (
-                    <SuiTypography
-                      component="h4"
-                      variant="caption"
-                      fontWeight="bold"
-                      sx={{ color: "red", mb: 4 }}
+                <SuiBox>
+                  {(tokenValidation.sumAllocation !== 100 ||
+                    tokenValidation.isAccountExist ||
+                    tokenValidation.isTokenNameEmpty ||
+                    tokenValidation.isTokenSymbolEmpty ||
+                    tokenValidation.notValidAllocation.length > 0) && (
+                    <Card
+                      sx={{
+                        mb: 3,
+                        flexGrow: 10,
+                        p: 4,
+                        border: "1px solid red",
+                        boxShadow: 4,
+                      }}
                     >
-                      Total allocations is difference from 100 percent !
-                    </SuiTypography>
+                      {tokenValidation.sumAllocation !== 100 && (
+                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                          Total allocations is difference from 100 percent !
+                        </SuiTypography>
+                      )}
+                      {tokenValidation.isTokenNameEmpty && (
+                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                          Token name is empty !
+                        </SuiTypography>
+                      )}
+                      {tokenValidation.isTokenSymbolEmpty && (
+                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                          Token symbol is empty !
+                        </SuiTypography>
+                      )}
+                      {tokenValidation.isAccountExist && (
+                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                          Account [{tokenFactoryStore.registerParams.ft_contract}] existed !
+                        </SuiTypography>
+                      )}
+                      {tokenValidation.notValidAllocation?.length > 0 &&
+                        tokenValidation.notValidAllocation.map((nva) => (
+                          <SuiTypography key={v4()} component="h6" variant="h6" fontWeight="bold">
+                            <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                            Allocation [{nva.accountId}] is not valid !
+                          </SuiTypography>
+                        ))}
+                    </Card>
                   )}
                   <LoadingButton
-                    disabled={loading || !tokenValidation || !isAllocationValid}
+                    disabled={loading}
                     sx={{
                       background: "linear-gradient(to left, #642b73, #c6426e)",
                       color: "#fff",
@@ -463,7 +481,7 @@ const CreateToken = (props) => {
                   >
                     Create Token
                   </LoadingButton>
-                </>
+                </SuiBox>
               ) : (
                 <SuiButton
                   color="primary"
