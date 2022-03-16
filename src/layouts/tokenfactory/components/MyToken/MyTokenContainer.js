@@ -106,13 +106,13 @@ const MyTokenContainer = () => {
                   <AutorenewOutlined sx={{ marginRight: 1 }} /> Resume
                 </SuiButton>
               )}
-            {t.enoughStorage === null &&
+            {!t.enoughStorage &&
                 <SuiButton variant="gradient" color="primary" onClick={() => handleStorageDeposit(t)}>
                   Add token to wallet
                 </SuiButton>
             }
 
-            {t.enoughStorage !== null &&
+            {t.enoughStorage &&
              (t.allocation_initialized === 1 && t.claimable_amount !== "0" && (
                   <SuiButton variant="gradient" color="primary" onClick={() => handleClaim(t)}>
                     <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
@@ -120,7 +120,7 @@ const MyTokenContainer = () => {
              ))
             }
 
-            {t.enoughStorage !== null &&
+            {t.enoughStorage &&
              (t.allocation_initialized === 1 && t.claimable_amount === "0" && (
                   <SuiButton disabled variant="gradient" color="primary" onClick={() => handleClaim(t)}>
                     <CheckCircleOutlined sx={{ marginRight: 1 }} /> Claim
@@ -128,7 +128,7 @@ const MyTokenContainer = () => {
              ))
             }
 
-            {t.enoughStorage != null &&
+            {t.enoughStorage &&
               (t.allocation_initialized === 1 && t.claimed === t.allocated_num && (
                   <SuiButton disabled variant="gradient" color="success">
                     <CheckCircleOutlined sx={{ marginRight: 1 }} />
