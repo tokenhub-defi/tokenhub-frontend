@@ -249,17 +249,17 @@ export class TokenSalesStore {
   submitRedeem = async () => {
     try {
       const { contract } = this.tokenState;
-      let storageDeposit = await this.tokenContract.storage_balance_of({
-        account_id: this.tokenStore.accountId,
-      });
-      if (storageDeposit === null) {
-        storageDeposit = await this.tokenContract.storage_deposit(
-          {},
-          this.DEFAULT_GAS,
-          this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
-        );
-        console.log(storageDeposit);
-      }
+      // let storageDeposit = await this.tokenContract.storage_balance_of({
+      //   account_id: this.tokenStore.accountId,
+      // });
+      // if (storageDeposit === null) {
+      //   storageDeposit = await this.tokenContract.storage_deposit(
+      //     {},
+      //     this.DEFAULT_GAS,
+      //     this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
+      //   );
+      //   console.log(storageDeposit);
+      // }
       this.notification = {
         type: NotificationType.INFO,
         message: "Waiting for transaction redeem...",
