@@ -121,7 +121,7 @@ const CreateToken = (props) => {
   };
 
   useEffect(() => {
-    setLoading(tokenFactoryStore.activeStep > -1 && tokenFactoryStore.activeStep <= 4);
+    setLoading(tokenFactoryStore.activeStep > -1 && tokenFactoryStore.activeStep <= 5);
   }, [tokenFactoryStore.activeStep]);
 
   const handleTokenNameChange = (e) => {
@@ -164,7 +164,7 @@ const CreateToken = (props) => {
     setTokenValidation({
       isTokenNameEmpty: _.isEmpty(token.tokenName),
       isTokenSymbolEmpty: _.isEmpty(token.symbol),
-      isAccountExist: symbolValid,
+      isAccountExist: !symbolValid,
       sumAllocation: allocationValid.Sum,
       notValidAllocation: allocationValid.NotValidAllocation,
     });
