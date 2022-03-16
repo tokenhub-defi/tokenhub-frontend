@@ -1,25 +1,17 @@
 /* eslint-disable default-case */
 /* eslint-disable no-console */
 import {
-  Button,
   Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
   Paper,
   Skeleton,
   Typography,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
-import SendIcon from "@mui/icons-material/Send";
 import SuiBox from "components/SuiBox";
 import { formatTokenAmountToHumanReadable } from "helpers/TokenUltis";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
 import { observer } from "mobx-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import SuiButton from "components/SuiButton";
 import SalesForm from "../SalesForm";
 
@@ -81,8 +73,7 @@ const TokenSalesForm = () => {
   const { userContract, tokenContract, tokenStore } = tokenSalesStore;
   const { nearUtils } = tokenStore;
   let { loading } = tokenSalesStore;
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const [action, setAction] = useState();
+  // const [action, setAction] = useState();
 
   useEffect(() => {
     if (!tokenStore.isSignedIn) {
@@ -90,7 +81,7 @@ const TokenSalesForm = () => {
     }
   }, [tokenStore.isSignedIn]);
 
-  const handleSubmitClick = async () => {
+  const handleSubmitClick = async (action) => {
     loading = true;
     try {
       switch (action) {
@@ -109,9 +100,6 @@ const TokenSalesForm = () => {
     }
     loading = false;
     // setOpenConfirmDialog(false);
-  };
-  const onCloseClick = () => {
-    setOpenConfirmDialog(false);
   };
 
   const handleRedeemValue = () => {
@@ -142,8 +130,8 @@ const TokenSalesForm = () => {
                       tokenSalesStore.deposit = e.target.value;
                     }}
                     onButtonClick={() => {
-                      setAction(ACTION.DEPOSIT);
-                      setOpenConfirmDialog(true);
+                      handleSubmitClick(ACTION.DEPOSIT);
+                                           // setOpenConfirmDialog(true);
                     }}
                     loading={loading}
                     adornment="NEAR"
@@ -164,8 +152,7 @@ const TokenSalesForm = () => {
                       tokenSalesStore.withdraw = e.target.value;
                     }}
                     onButtonClick={() => {
-                      setAction(ACTION.WITHDRAWAL);
-                      setOpenConfirmDialog(true);
+                      handleSubmitClick(ACTION.WITHDRAWAL);
                     }}
                     loading={loading}
                     adornment="NEAR"
@@ -186,8 +173,7 @@ const TokenSalesForm = () => {
                       tokenSalesStore.redeem = e.target.value;
                     }}
                     onButtonClick={() => {
-                      setAction(ACTION.REDEEM);
-                      setOpenConfirmDialog(true);
+                      handleSubmitClick(ACTION.REDEEM);
                     }}
                     loading={loading}
                     adornment={tokenContract.tokenInfo.symbol || ""}
@@ -216,26 +202,6 @@ const TokenSalesForm = () => {
           )}
         </SuiBox>
       </Card>
-      <Dialog
-        open={openConfirmDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Confirmation!</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">Are you sure ?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onCloseClick}>Close</Button>
-          <LoadingButton
-            onClick={handleSubmitClick}
-            endIcon={<SendIcon />}
-            loading={loading}
-            loadingPosition="end"
-            variant="contained"
-          />
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

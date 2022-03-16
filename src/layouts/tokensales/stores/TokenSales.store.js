@@ -169,14 +169,14 @@ export class TokenSalesStore {
       const saleInfo = result[0];
       const totalDeposit = result[1];
       const tokenPeriod = result[2];
-      // let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
+      let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
 
       const tokenInfo = await this.tokenStore.callViewMethod(
         saleInfo.ft_contract_name,
         "ft_metadata"
       );
-      const tokenContract = {
-        ...this.tokenContract,
+      tokenContract = {
+        ...tokenContract,
         ...{
           totalDeposit: totalDeposit,
           tokenPeriod: tokenPeriod,
@@ -249,17 +249,17 @@ export class TokenSalesStore {
   submitRedeem = async () => {
     try {
       const { contract } = this.tokenState;
-      let storageDeposit = await this.tokenContract.storage_balance_of({
-        account_id: this.tokenStore.accountId,
-      });
-      if (storageDeposit === null) {
-        storageDeposit = await this.tokenContract.storage_deposit(
-          {},
-          this.DEFAULT_GAS,
-          this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
-        );
-        console.log(storageDeposit);
-      }
+      // let storageDeposit = await this.tokenContract.storage_balance_of({
+      //   account_id: this.tokenStore.accountId,
+      // });
+      // if (storageDeposit === null) {
+      //   storageDeposit = await this.tokenContract.storage_deposit(
+      //     {},
+      //     this.DEFAULT_GAS,
+      //     this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
+      //   );
+      //   console.log(storageDeposit);
+      // }
       this.notification = {
         type: NotificationType.INFO,
         message: "Waiting for transaction redeem...",
