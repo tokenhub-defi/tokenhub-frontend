@@ -172,8 +172,12 @@ export class TokenFactoryStore {
       clonedI.enoughStorage = enoughStorage
       return clonedI
     })
+<<<<<<< HEAD
 
     this.registeredTokens = await Promise.all(promiseArray);
+=======
+    this.registeredTokens = lst;
+>>>>>>> 020a4a8 (Storage deposit button update)
     this.remapTokenList();
   };
 
