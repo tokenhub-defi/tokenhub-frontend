@@ -1,10 +1,12 @@
 // eslint-disable-next-line import/prefer-default-export
 // eslint-disable-next-line max-classes-per-file
+import BigNumber from "big-number/big-number";
 import Shop from "examples/Icons/Shop";
 // import { getTokenFactoryConfig } from "layouts/tokensales/config";
 import { action, computed, makeObservable, observable } from "mobx";
 import moment from "moment";
 import { Contract, providers } from "near-api-js";
+// import BigNumber from "big-number";
 // import { LOCAL_STORAGE_CURRENT_TOKEN } from "../constants/TokenFactory";
 
 export const TREASURY_ACCOUNT = "treasury.tokenhub.testnet";
@@ -163,7 +165,7 @@ export class TokenFactoryStore {
 
   setRegisteredTokens = async (lst) => {
 
-     const promiseArray = lst.map( async (i) => {
+    const promiseArray = lst.map(async (i) => {
       const enoughStorage = await this.enoughStorage(i);
 
       console.log(enoughStorage);
@@ -346,12 +348,13 @@ export class TokenFactoryStore {
     try {
       if (tokenContract) {
         await tokenContract.storage_deposit(
-            {},
-            this.DEFAULT_GAS,
-            this.tokenStore.nearUtils.format.parseNearAmount(
-              this.DEFAULT_STORAGE_DEPOSIT.toString()
-            )
-          );      }
+          {},
+          this.DEFAULT_GAS,
+          this.tokenStore.nearUtils.format.parseNearAmount(
+            this.DEFAULT_STORAGE_DEPOSIT.toString()
+          )
+        );
+      }
     } catch (error) {
       console.log("claim : ", error);
     }
@@ -360,8 +363,8 @@ export class TokenFactoryStore {
   claim = async (token) => {
     const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
     try {
-        const res = await deployerContract.claim({}, this.DEFAULT_GAS);
-        return res;
+      const res = await deployerContract.claim({}, this.DEFAULT_GAS);
+      return res;
     } catch (error) {
       console.log("claim : ", error);
     }
@@ -535,7 +538,7 @@ export class TokenFactoryStore {
                 vestingDuration: Math.round(
                   (moment(alItem.vesting_end_time / 10 ** 6) -
                     moment(alItem.vesting_start_time / 10 ** 6)) /
-                    (10 ** 3 * 24 * 3600)
+                  (10 ** 3 * 24 * 3600)
                 ),
               },
             };
@@ -591,7 +594,7 @@ export class TokenFactoryStore {
       icon: this.token.icon,
       ft_contract: `${this.token.symbol}.tokenhub.testnet`.toLowerCase(),
       deployer_contract: `${this.token.symbol}-deployer.tokenhub.testnet`.toLowerCase(),
-      total_supply: (this.token.initialSupply * 10 ** this.token.decimal).toString(),
+      total_supply: BigNumber(this.token.initialSupply).mult(10 ** this.token.decimal).toString(),
       token_name: this.token.tokenName,
       symbol: this.token.symbol,
       decimals: this.token.decimal,

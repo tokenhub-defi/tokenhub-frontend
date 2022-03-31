@@ -1,4 +1,4 @@
-import { Grid, TextField } from "@mui/material";
+import { Grid, MenuItem, Select, TextField } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/lab";
 import SuiBox from "components/SuiBox";
 import SuiInput from "components/SuiInput";
@@ -47,7 +47,7 @@ const AllocationView = (props) => {
           <SuiBox mb={1} ml={0.5}>
             <Grid container direction="row" justifyContent="space-between" sx={{ pt: 1 }}>
               <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
-                Account {accountId === TREASURY_ACCOUNT && "Treasury"}{" "}
+                {accountId === TREASURY_ACCOUNT && "Treasury"}{" "}
                 {accountId === tokenStore.accountId && "Creator"}
               </SuiTypography>
               {_.isEmpty(accountId) && (
@@ -82,8 +82,7 @@ const AllocationView = (props) => {
                 Allocation (%)
               </SuiTypography>
             </SuiBox>
-
-            <TextField
+            {accountId !== TREASURY_ACCOUNT && <TextField
               ref={allocationInputRef}
               value={allocatedPercent}
               disabled={loading}
@@ -100,6 +99,19 @@ const AllocationView = (props) => {
                 setAllocatedPercent(alPercent);
               }}
             />
+            }
+            {accountId === TREASURY_ACCOUNT && <Select
+              value={allocatedPercent}
+              onChange={(e) => {
+                setAllocatedPercent(e.target.value);
+              }}
+              input={<SuiInput />}
+            >
+              <MenuItem value={3}>3</MenuItem>
+              <MenuItem value={5}>5</MenuItem>
+              <MenuItem value={7}>7</MenuItem>
+            </Select>
+            }
           </SuiBox>
         </Grid>
         <Grid item xs={12} md={6}>

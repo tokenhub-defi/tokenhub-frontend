@@ -28,7 +28,7 @@ import { useDropzone } from "react-dropzone";
 import { resizeImage } from "helpers/TokenUltis";
 import { Allocation, TREASURY_ACCOUNT } from "layouts/tokenfactory/stores/TokenFactory.store";
 import _ from "lodash";
-import SuiAlert from "components/SuiAlert";
+import NumberFormat from "react-number-format";
 import AllocationView from "../Allocation";
 import "./createToken.scss";
 
@@ -132,8 +132,8 @@ const CreateToken = (props) => {
     setToken({ ...token, ...{ symbol: e.target.value.toUpperCase() } });
   };
 
-  const handleInitialSupplyChange = (e) => {
-    const tSupply = e.target.value;
+  const handleInitialSupplyChange = (values) => {
+    const { formattedValue, value } = values;
     // if (totalSuppyInputRef.current.onChangeTimeout) clearTimeout(totalSuppyInputRef.current.onChangeTimeout);
     // totalSuppyInputRef.current.onChangeTimeout = setTimeout(() => {
     //   if (tSupply < MIN_TOTAL_SUPPLY) tSupply = MIN_TOTAL_SUPPLY;
@@ -141,8 +141,9 @@ const CreateToken = (props) => {
     //   setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
     //   setToken({ ...token, ...{ initialSupply: tSupply } });
     // }, 500);
-    setTotalSupply(tSupply * 10 ** tokenFactoryStore.token.decimal);
-    setToken({ ...token, ...{ initialSupply: tSupply } });
+    setTotalSupply(value * 10 ** tokenFactoryStore.token.decimal);
+    setToken({ ...token, ...{ initialSupply: value } });
+    console.log(tokenFactoryStore.registerParams.total_supply);
   };
 
   const handleDecimalChange = (e) => {
@@ -265,7 +266,7 @@ const CreateToken = (props) => {
                     value={tokenFactoryStore.token.tokenName}
                     sx={
                       (tokenValidation.isAccountExist || tokenValidation.isTokenNameEmpty) &&
-                      !isResume
+                        !isResume
                         ? { border: "1px solid red" }
                         : { border: "inherited" }
                     }
@@ -288,7 +289,7 @@ const CreateToken = (props) => {
                         value={tokenFactoryStore.token.symbol}
                         sx={
                           (tokenValidation.isAccountExist || tokenValidation.isTokenSymbolEmpty) &&
-                          !isResume
+                            !isResume
                             ? { border: "1px solid red" }
                             : { border: "inherited" }
                         }
@@ -332,20 +333,24 @@ const CreateToken = (props) => {
                       <SuiTypography component="label" variant="caption" fontWeight="bold" mb={1}>
                         Total Supply
                       </SuiTypography>
-                      <SuiTypography component="label" variant="caption" align="right" color="red">
-                        ~ {humanize.numberFormat(totalSupply)}
-                      </SuiTypography>
                     </Grid>
                   </SuiBox>
+                  <NumberFormat
+                    thousandSeparator
+                    value={token.initialSupply}
+                    customInput={SuiInput}
+                    onValueChange={handleInitialSupplyChange}
+                    isAllowed={({ floatValue }) => floatValue >= MIN_TOTAL_SUPPLY && floatValue <= MAX_TOTAL_SUPPLY}
+                  />
 
-                  <TextField
+                  {/* <TextField
                     ref={totalSuppyInputRef}
                     disabled={loading}
                     required
                     type="number"
                     placeholder="Total Supply"
                     className="total-supply"
-                    value={tokenFactoryStore.token.initialSupply}
+                    value={humanize.numberFormat(tokenFactoryStore.token.initialSupply)}
                     // defaultValue={tokenFactoryStore.token.initialSupply}
                     onChange={handleInitialSupplyChange}
                     inputProps={{
@@ -354,7 +359,7 @@ const CreateToken = (props) => {
                       max: MAX_TOTAL_SUPPLY,
                     }}
                     fullWidth
-                  />
+                  /> */}
                 </SuiBox>
                 <SuiBox mb={2}>
                   <SuiBox mb={1} ml={0.5}>
@@ -425,48 +430,48 @@ const CreateToken = (props) => {
                     tokenValidation.isTokenNameEmpty ||
                     tokenValidation.isTokenSymbolEmpty ||
                     tokenValidation.notValidAllocation.length > 0) && (
-                    <Card
-                      sx={{
-                        mb: 3,
-                        flexGrow: 10,
-                        p: 4,
-                        border: "1px solid red",
-                        boxShadow: 4,
-                      }}
-                    >
-                      {tokenValidation.sumAllocation !== 100 && (
-                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
-                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
-                          Total allocations is difference from 100 percent !
-                        </SuiTypography>
-                      )}
-                      {tokenValidation.isTokenNameEmpty && (
-                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
-                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
-                          Token name is empty !
-                        </SuiTypography>
-                      )}
-                      {tokenValidation.isTokenSymbolEmpty && (
-                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
-                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
-                          Token symbol is empty !
-                        </SuiTypography>
-                      )}
-                      {tokenValidation.isAccountExist && (
-                        <SuiTypography component="h6" variant="h6" fontWeight="bold">
-                          <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
-                          Account [{tokenFactoryStore.registerParams.ft_contract}] existed !
-                        </SuiTypography>
-                      )}
-                      {tokenValidation.notValidAllocation?.length > 0 &&
-                        tokenValidation.notValidAllocation.map((nva) => (
-                          <SuiTypography key={v4()} component="h6" variant="h6" fontWeight="bold">
+                      <Card
+                        sx={{
+                          mb: 3,
+                          flexGrow: 10,
+                          p: 4,
+                          border: "1px solid red",
+                          boxShadow: 4,
+                        }}
+                      >
+                        {tokenValidation.sumAllocation !== 100 && (
+                          <SuiTypography component="h6" variant="h6" fontWeight="bold">
                             <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
-                            Allocation [{nva.accountId}] is not valid !
+                            Total allocations is difference from 100 percent !
                           </SuiTypography>
-                        ))}
-                    </Card>
-                  )}
+                        )}
+                        {tokenValidation.isTokenNameEmpty && (
+                          <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                            <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                            Token name is empty !
+                          </SuiTypography>
+                        )}
+                        {tokenValidation.isTokenSymbolEmpty && (
+                          <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                            <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                            Token symbol is empty !
+                          </SuiTypography>
+                        )}
+                        {tokenValidation.isAccountExist && (
+                          <SuiTypography component="h6" variant="h6" fontWeight="bold">
+                            <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                            Account [{tokenFactoryStore.registerParams.ft_contract}] existed !
+                          </SuiTypography>
+                        )}
+                        {tokenValidation.notValidAllocation?.length > 0 &&
+                          tokenValidation.notValidAllocation.map((nva) => (
+                            <SuiTypography key={v4()} component="h6" variant="h6" fontWeight="bold">
+                              <PriorityHigh fontSize="medium" color="error" sx={{ mb: "-5px" }} />
+                              Allocation [{nva.accountId}] is not valid !
+                            </SuiTypography>
+                          ))}
+                      </Card>
+                    )}
                   <LoadingButton
                     disabled={loading}
                     sx={{
