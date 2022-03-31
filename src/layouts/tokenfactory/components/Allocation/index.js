@@ -82,36 +82,38 @@ const AllocationView = (props) => {
                 Allocation (%)
               </SuiTypography>
             </SuiBox>
-            {accountId !== TREASURY_ACCOUNT && <TextField
-              ref={allocationInputRef}
-              value={allocatedPercent}
-              disabled={loading}
-              type="number"
-              className="allocated-percent"
-              inputProps={{
-                max: 100,
-                min: 10,
-              }}
-              fullWidth
-              onChange={(e) => {
-                const alPercent = e.target.value;
+            {accountId !== TREASURY_ACCOUNT && (
+              <TextField
+                ref={allocationInputRef}
+                value={allocatedPercent}
+                disabled={loading}
+                type="number"
+                className="allocated-percent"
+                inputProps={{
+                  max: 100,
+                  min: 10,
+                }}
+                fullWidth
+                onChange={(e) => {
+                  const alPercent = e.target.value;
 
-                setAllocatedPercent(alPercent);
-              }}
-            />
-            }
-            {accountId === TREASURY_ACCOUNT && <Select
-              value={allocatedPercent}
-              onChange={(e) => {
-                setAllocatedPercent(e.target.value);
-              }}
-              input={<SuiInput />}
-            >
-              <MenuItem value={3}>3</MenuItem>
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={7}>7</MenuItem>
-            </Select>
-            }
+                  setAllocatedPercent(alPercent);
+                }}
+              />
+            )}
+            {accountId === TREASURY_ACCOUNT && (
+              <Select
+                value={allocatedPercent}
+                onChange={(e) => {
+                  setAllocatedPercent(e.target.value);
+                }}
+                input={<SuiInput />}
+              >
+                <MenuItem value={3}>3</MenuItem>
+                <MenuItem value={5}>5</MenuItem>
+                <MenuItem value={7}>7</MenuItem>
+              </Select>
+            )}
           </SuiBox>
         </Grid>
         <Grid item xs={12} md={6}>
