@@ -49,7 +49,7 @@ const TokenFactoryContainer = () => {
       id: new Date().getTime() + 100000,
       accountId: TREASURY_ACCOUNT,
       allocatedPercent: "5",
-      initialRelease: "5",
+      initialRelease: "0",
       vestingStartTime: new Date(),
       vestingEndTime: moment().add(30, "day"),
       vestingInterval: 1,
