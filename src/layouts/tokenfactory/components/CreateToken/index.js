@@ -336,6 +336,10 @@ const CreateToken = (props) => {
                     </Grid>
                   </SuiBox>
                   <NumberFormat
+                    disabled={loading}
+                    required
+                    placeholder="Total Supply"
+                    className="total-supply"
                     thousandSeparator
                     value={token.initialSupply}
                     customInput={SuiInput}
