@@ -104,6 +104,7 @@ const AllocationView = (props) => {
             {accountId === TREASURY_ACCOUNT && (
               <Select
                 value={allocatedPercent}
+                disabled={loading}
                 onChange={(e) => {
                   setAllocatedPercent(e.target.value);
                 }}

@@ -164,16 +164,15 @@ export class TokenFactoryStore {
   };
 
   setRegisteredTokens = async (lst) => {
-
     const promiseArray = lst.map(async (i) => {
       const enoughStorage = await this.enoughStorage(i);
 
       console.log(enoughStorage);
-      console.log(i)
+      console.log(i);
       const clonedI = i;
-      clonedI.enoughStorage = enoughStorage
-      return clonedI
-    })
+      clonedI.enoughStorage = enoughStorage;
+      return clonedI;
+    });
 
     this.registeredTokens = await Promise.all(promiseArray);
     this.remapTokenList();
@@ -334,10 +333,10 @@ export class TokenFactoryStore {
       }
     } catch (error) {
       console.log("EnoughStorage ", error);
-      return false
+      return false;
     }
-    return false
-  }
+    return false;
+  };
 
   storageDeposit = async (token) => {
     const tokenContract = await this.initTokenContract(
@@ -350,15 +349,13 @@ export class TokenFactoryStore {
         await tokenContract.storage_deposit(
           {},
           this.DEFAULT_GAS,
-          this.tokenStore.nearUtils.format.parseNearAmount(
-            this.DEFAULT_STORAGE_DEPOSIT.toString()
-          )
+          this.tokenStore.nearUtils.format.parseNearAmount(this.DEFAULT_STORAGE_DEPOSIT.toString())
         );
       }
     } catch (error) {
       console.log("claim : ", error);
     }
-  }
+  };
 
   claim = async (token) => {
     const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
@@ -538,7 +535,7 @@ export class TokenFactoryStore {
                 vestingDuration: Math.round(
                   (moment(alItem.vesting_end_time / 10 ** 6) -
                     moment(alItem.vesting_start_time / 10 ** 6)) /
-                  (10 ** 3 * 24 * 3600)
+                    (10 ** 3 * 24 * 3600)
                 ),
               },
             };
@@ -590,14 +587,18 @@ export class TokenFactoryStore {
       };
     });
 
+    const initialSupplyLength = this.token.initialSupply.toString().length - 1;
+
     return {
       icon: this.token.icon,
       ft_contract: `${this.token.symbol}.tokenhub.testnet`.toLowerCase(),
       deployer_contract: `${this.token.symbol}-deployer.tokenhub.testnet`.toLowerCase(),
-      total_supply: BigNumber(this.token.initialSupply).mult(10 ** this.token.decimal).toString(),
+      total_supply: BigNumber(10)
+        .pow(initialSupplyLength + parseInt(this.token.decimal, 10))
+        .toString(),
       token_name: this.token.tokenName,
       symbol: this.token.symbol,
-      decimals: this.token.decimal,
+      decimals: parseInt(this.token.decimal, 10),
       allocations,
     };
   }

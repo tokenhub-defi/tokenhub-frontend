@@ -100,7 +100,7 @@ const CreateToken = (props) => {
       }
       if (
         parseFloat(item.initialRelease) > 100 ||
-        parseFloat(item.initialRelease) < 1 ||
+        parseFloat(item.initialRelease) < 0 ||
         parseFloat(item.initialRelease) > parseFloat(item.allocatedPercent)
       ) {
         isValid = false;
@@ -153,6 +153,7 @@ const CreateToken = (props) => {
     //   setToken({ ...token, ...{ decimal: decimalT } });
     // }, 500);
     setToken({ ...token, ...{ decimal: decimalT } });
+    console.log(tokenFactoryStore.registerParams.total_supply);
   };
 
   const validateNewToken = async () => {
