@@ -14,16 +14,32 @@ const TokenSalesItem = (props) => {
   const { token } = props;
   const tokenData = token[1];
   useEffect(() => {}, []);
+  const getColor = () => {
+    let color = "primary";
+    switch (tokenData.tokenPeriod) {
+      case "NOT_STARTED":
+        color = "warning";
+        break;
+      case "FINISHED":
+        color = "success";
+        break;
+      default:
+        color = "primary";
+        break;
+    }
+    return color;
+  };
   return (
     <Card className="token-sales-item">
       {tokenData ? (
         <SuiBox p={2}>
-          <SuiBox p={2} sx={{ textAlign: "right" }}>
+          <SuiBox sx={{ textAlign: "right" }}>
             {/* <SuiButton variant="gradient" disabled sx={{ marginRight: 1 }} color="primary">
               <Check />
             </SuiButton> */}
-            <SuiButton variant="gradient" disabled color="primary">
-              <FiberManualRecord color="warning" /> {tokenData.tokenPeriod}
+            <SuiButton variant="gradient" disabled color={getColor()}>
+              <FiberManualRecord color={getColor() === "primary" ? "success" : "primary"} />{" "}
+              {tokenData.tokenPeriod}
             </SuiButton>
           </SuiBox>
           <SuiBox p={2}>
@@ -32,8 +48,16 @@ const TokenSalesItem = (props) => {
               {`${tokenData.tokenInfo.name} (${tokenData.tokenInfo.symbol})`}
             </SuiTypography>
             <Box className="slider-container">
+              <Box pt={2} textAlign="right">
+                <SuiTypography component="p" variant="caption" fontWeight="bold">
+                  Total raise :
+                </SuiTypography>
+                <SuiTypography component="p" variant="h6" fontWeight="bold" color="success">
+                  {tokenData.totalDeposit.formatted_amount} NEAR
+                </SuiTypography>
+              </Box>
               <Slider
-                className="slider-total"
+                // className="slider-total"
                 min={0}
                 max={tokenData.totalDeposit.formatted_amount}
                 value={[0, tokenData.totalDeposit.formatted_amount]}
@@ -68,16 +92,6 @@ const TokenSalesItem = (props) => {
                   // },
                   {
                     value: tokenData.totalDeposit.formatted_amount,
-                    label: (
-                      <Box textAlign="right" sx={{ mt: "-4rem", ml: "-30rem" }}>
-                        <SuiTypography component="p" variant="caption" fontWeight="bold">
-                          Total raise
-                        </SuiTypography>
-                        <SuiTypography component="p" variant="h6" fontWeight="bold">
-                          ${tokenData.totalDeposit.formatted_amount} NEAR
-                        </SuiTypography>
-                      </Box>
-                    ),
                   },
                 ]}
                 getAriaValueText={(value) => `${value} NEAR`}
@@ -87,14 +101,14 @@ const TokenSalesItem = (props) => {
               <SuiTypography component="label" variant="caption" fontWeight="bold">
                 Token Price:
               </SuiTypography>
-              <SuiTypography component="p" variant="h5" fontWeight="bold" color="primary">
+              <SuiTypography component="p" variant="h6" fontWeight="bold" color="primary">
                 {humanize.numberFormat(
                   tokenData.totalDeposit.formatted_amount /
                     formatTokenAmountToHumanReadable(
                       tokenData.saleInfo.num_of_tokens.toString(),
                       tokenData.tokenInfo.decimals
                     ),
-                  tokenData.tokenInfo.decimals
+                  6
                 )}
               </SuiTypography>
             </Box>
@@ -114,7 +128,7 @@ const TokenSalesItem = (props) => {
                   <SuiTypography component="label" variant="caption" fontWeight="bold">
                     Description:
                   </SuiTypography>
-                  <SuiTypography component="p" variant="h5" fontWeight="bold" color="primary">
+                  <SuiTypography component="p" variant="h6" fontWeight="bold" color="primary">
                     {tokenData.refData.description}
                   </SuiTypography>
                 </SuiBox>
