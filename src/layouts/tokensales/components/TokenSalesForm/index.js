@@ -1,12 +1,6 @@
 /* eslint-disable default-case */
 /* eslint-disable no-console */
-import {
-  Card,
-  Grid,
-  Paper,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Card, Grid, Paper, Skeleton, Typography } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import { formatTokenAmountToHumanReadable } from "helpers/TokenUltis";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
@@ -19,6 +13,7 @@ export const ACTION = {
   DEPOSIT: "DEPOSIT",
   WITHDRAWAL: "WITHDRAWAL",
   REDEEM: "REDEEM",
+  CLAIM: "CLAIM",
 };
 
 export const TokenSalesFormSkeleton = () => (
@@ -94,6 +89,9 @@ const TokenSalesForm = () => {
         case ACTION.REDEEM:
           await tokenSalesStore.submitRedeem();
           break;
+        case ACTION.CLAIM:
+          await tokenSalesStore.submitClaim();
+          break;
       }
     } catch (error) {
       console.log(error);
@@ -131,7 +129,7 @@ const TokenSalesForm = () => {
                     }}
                     onButtonClick={() => {
                       handleSubmitClick(ACTION.DEPOSIT);
-                                           // setOpenConfirmDialog(true);
+                      // setOpenConfirmDialog(true);
                     }}
                     loading={loading}
                     adornment="NEAR"
@@ -179,6 +177,27 @@ const TokenSalesForm = () => {
                     adornment={tokenContract.tokenInfo.symbol || ""}
                     buttonText="Redeem"
                   />
+
+                  {tokenContract.saleInfo?.sale_owner === tokenStore.accountId && (
+                    <SalesForm
+                      label="Claim"
+                      defaultValue={tokenContract.totalDeposit.formatted_amount}
+                      buttonDisable={
+                        tokenContract.saleInfo?.fund_claimed ||
+                        tokenContract.tokenPeriod !== "FINISHED"
+                      }
+                      disabled={
+                        tokenContract.saleInfo?.fund_claimed ||
+                        tokenContract.tokenPeriod !== "FINISHED"
+                      }
+                      onButtonClick={() => {
+                        handleSubmitClick(ACTION.CLAIM);
+                      }}
+                      loading={loading}
+                      adornment="NEAR"
+                      buttonText="Claim"
+                    />
+                  )}
                 </SuiBox>
               </Grid>
             </Grid>

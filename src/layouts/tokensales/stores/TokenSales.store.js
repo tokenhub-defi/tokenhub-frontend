@@ -105,7 +105,7 @@ export class TokenSalesStore {
         {
           viewMethods: ["get_total_deposit", "get_sale_info", "check_sale_status", "get_user_sale"],
           // Change methods can modify the state. But you don't receive the returned value when called.
-          changeMethods: ["deposit", "withdraw", "finish", "redeem"],
+          changeMethods: ["deposit", "withdraw", "finish", "redeem", "claim_fund"],
         }
       );
 
@@ -277,6 +277,41 @@ export class TokenSalesStore {
         this.notification = {
           type: NotificationType.ERROR,
           message: "Redeem FAIL",
+          show: true,
+        };
+      }
+    } catch (error) {
+      console.log(error);
+      this.notification = {
+        type: NotificationType.ERROR,
+        message: error.message,
+        show: true,
+      };
+    } finally {
+      this.fetchUserData(this.tokenState.contract);
+    }
+  };
+  submitClaim = async () => {
+    try {
+      const { contract } = this.tokenState;
+
+      this.notification = {
+        type: NotificationType.INFO,
+        message: "Waiting for transaction claim...",
+        show: true,
+      };
+
+      const res = await contract.claim_fund({}, this.DEFAULT_GAS, "1");
+      if (res) {
+        this.notification = {
+          type: NotificationType.SUCCESS,
+          message: "Claim SUCCESS",
+          show: true,
+        };
+      } else {
+        this.notification = {
+          type: NotificationType.ERROR,
+          message: "Claim FAIL",
           show: true,
         };
       }
