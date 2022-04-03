@@ -33,7 +33,10 @@ const ListTokenSalesContainer = () => {
               break;
             default:
               value.result = value.result.filter(
-                (r) => r[1].tokenPeriod !== "NOT_STARTED" && r[1].tokenPeriod !== "FINISHED"
+                (r) =>
+                  r[1].tokenPeriod &&
+                  r[1].tokenPeriod !== "NOT_STARTED" &&
+                  r[1].tokenPeriod !== "FINISHED"
               );
               break;
           }

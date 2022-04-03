@@ -163,7 +163,7 @@ export class TokenSalesStore {
     try {
       const result = await Promise.all([
         this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_sale_info"),
-        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_total_deposit"),
+        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_total_deposit_json"),
         this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "check_sale_status"),
       ]);
       const saleInfo = result[0];

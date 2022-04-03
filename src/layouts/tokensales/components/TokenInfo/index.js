@@ -81,7 +81,7 @@ const TokenInfo = () => {
                             tokenContract.saleInfo.num_of_tokens.toString(),
                             tokenContract.tokenInfo.decimals
                           ),
-                        tokenContract.tokenInfo.decimals
+                        6
                       )}
                     </SuiTypography>
                   </SuiTypography>
