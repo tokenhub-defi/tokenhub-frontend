@@ -164,17 +164,7 @@ export class TokenFactoryStore {
   };
 
   setRegisteredTokens = async (lst) => {
-    const promiseArray = lst.map(async (i) => {
-      const enoughStorage = await this.enoughStorage(i);
-
-      console.log(enoughStorage);
-      console.log(i);
-      const clonedI = i;
-      clonedI.enoughStorage = enoughStorage;
-      return clonedI;
-    });
-
-    this.registeredTokens = await Promise.all(promiseArray);
+    this.registeredTokens = lst;
     this.remapTokenList();
   };
 
@@ -317,27 +307,6 @@ export class TokenFactoryStore {
     return null;
   };
 
-  enoughStorage = async (token) => {
-    const tokenContract = await this.initTokenContract(
-      token.ft_contract,
-      ["ft_metadata", "ft_balance_of", "storage_balance_of"],
-      ["ft_transfer", "storage_deposit"]
-    );
-
-    try {
-      if (tokenContract) {
-        const storageDeposit = await tokenContract.storage_balance_of({
-          account_id: this.tokenStore.accountId,
-        });
-        return storageDeposit;
-      }
-    } catch (error) {
-      console.log("EnoughStorage ", error);
-      return false;
-    }
-    return false;
-  };
-
   storageDeposit = async (token) => {
     const tokenContract = await this.initTokenContract(
       token.ft_contract,
@@ -360,7 +329,7 @@ export class TokenFactoryStore {
   claim = async (token) => {
     const deployerContract = await this.initTokenContract(token.ft_deployer, [], ["claim"]);
     try {
-      const res = await deployerContract.claim({}, this.DEFAULT_GAS);
+      const res = await deployerContract.claim({}, this.DEFAULT_GAS, "1250000000000000000000");
       return res;
     } catch (error) {
       console.log("claim : ", error);
@@ -527,7 +496,6 @@ export class TokenFactoryStore {
                 accountId: k[0],
                 role: "",
                 initialRelease: alItem.initial_release / 100,
-                enoughStorage: i.enoughStorage,
                 allocatedPercent: alItem.allocated_percent / 100,
                 vestingStartTime: alItem.vesting_start_time / 10 ** 6,
                 vestingEndTime: alItem.vesting_end_time / 10 ** 6,
@@ -591,8 +559,8 @@ export class TokenFactoryStore {
 
     return {
       icon: this.token.icon,
-      ft_contract: `${this.token.symbol}.tokenhub.testnet`.toLowerCase(),
-      deployer_contract: `${this.token.symbol}-deployer.tokenhub.testnet`.toLowerCase(),
+      ft_contract: `${this.token.symbol}.factory.tokenhub.testnet`.toLowerCase(),
+      deployer_contract: `${this.token.symbol}-deployer.factory.tokenhub.testnet`.toLowerCase(),
       total_supply: BigNumber(10)
         .pow(initialSupplyLength + parseInt(this.token.decimal, 10))
         .toString(),

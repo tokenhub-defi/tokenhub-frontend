@@ -1,5 +1,5 @@
 const CONTRACT_NAME = process.env.CONTRACT_NAME || "dev-1636808664410-33820590914842";
-const TOKEN_FACTORY_CONTRACT_NAME = process.env.TOKEN_FACTORY_CONTRACT_NAME || "tokenhub.testnet";
+const TOKEN_FACTORY_CONTRACT_NAME = "factory.tokenhub.testnet";
 
 function getConfig(env) {
   switch (env) {

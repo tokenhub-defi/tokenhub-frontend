@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Box, Card, Grid, List, ListItem, ListItemText, TextField } from "@mui/material";
+import { Card, Grid, TextField } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import SuiButton from "components/SuiButton";
 import SuiInput from "components/SuiInput";
@@ -10,7 +10,6 @@ import SuiTypography from "components/SuiTypography";
 import { TokenFactoryContext } from "layouts/tokenfactory/context/TokenFactoryContext";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { useContext, useEffect, useState, useReducer, useRef } from "react";
-import { humanize } from "humanize";
 import AddIcon from "@mui/icons-material/Add";
 import { LoadingButton } from "@mui/lab";
 import { observer } from "mobx-react";
@@ -19,10 +18,7 @@ import {
   AddAPhotoOutlined,
   BackupOutlined,
   DeleteOutlined,
-  ErrorOutline,
   PriorityHigh,
-  PriorityHighOutlined,
-  PriorityHighRounded,
 } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
 import { resizeImage } from "helpers/TokenUltis";
@@ -61,7 +57,7 @@ const CreateToken = (props) => {
     maxFiles: 1,
     onDrop: (acceptedFiles) => {
       resizeImage({ file: acceptedFiles[0], maxSize: 32 }).then((result) => {
-        tokenFactoryStore.token.icon = result;
+        setToken({ ...token, ...{ icon: result } });
       });
     },
   });
