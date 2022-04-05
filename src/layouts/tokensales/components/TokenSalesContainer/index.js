@@ -3,6 +3,7 @@ import { Grid } from "@mui/material";
 import TokenNavbar from "components/App/TokenNavbar";
 import SuiBox from "components/SuiBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import humanizeDuration from "humanize-duration";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
 import { observer } from "mobx-react";
 import moment from "moment";
@@ -16,6 +17,7 @@ import TokenSalesForm from "../TokenSalesForm";
 const TokenSalesContainer = () => {
   const { tokenSalesStore, salesContractStore } = useContext(TokenSalesContext);
   const { tokenContract, tokenStore, tokenState } = tokenSalesStore;
+  const [reference, setReference] = useState({});
   const [startCountdown, setStartCountdown] = useState();
   const [saleCountDown, setSaleCountdown] = useState();
   const [graceCountdown, setGraceCountdown] = useState();
@@ -28,6 +30,11 @@ const TokenSalesContainer = () => {
       camp = await salesContractStore.getCampaign(parseInt(saleId, 10));
       if (camp) {
         await tokenSalesStore.fetchContractStatus(camp.sale_contract);
+        if (camp.reference) {
+          const ref = await fetch(camp.reference);
+          const refJson = await ref.json();
+          setReference(refJson);
+        }
       }
     } catch (error) {
       console.error("Token Sale Init Contract: ", error);
@@ -129,7 +136,11 @@ const TokenSalesContainer = () => {
               <PeriodCard
                 title={{ text: "sales period" }}
                 period={
-                  moment.duration(tokenContract?.saleInfo?.sale_duration / 1000000).humanize() || ""
+                  humanizeDuration(
+                    moment.duration(tokenContract?.saleInfo?.sale_duration / 1000000),
+                    { spacer: " ", delimiter: " " }
+                  )
+                  // moment.duration(tokenContract?.saleInfo?.sale_duration / 1000000).humanize() || ""
                 }
                 icon={{ color: "info", component: "access_time" }}
                 countDown={saleCountDown}
@@ -139,8 +150,12 @@ const TokenSalesContainer = () => {
               <PeriodCard
                 title={{ text: "grace period" }}
                 period={
-                  moment.duration(tokenContract?.saleInfo?.grace_duration / 1000000).humanize() ||
-                  ""
+                  humanizeDuration(
+                    moment.duration(tokenContract?.saleInfo?.grace_duration / 1000000),
+                    { spacer: " ", delimiter: " " }
+                  )
+                  // moment.duration(tokenContract?.saleInfo?.grace_duration / 1000000).humanize() ||
+                  // ""
                 }
                 icon={{ color: "primary", component: "access_time" }}
                 countDown={graceCountdown}
@@ -154,7 +169,7 @@ const TokenSalesContainer = () => {
               <TokenSalesForm />
             </Grid>
             <Grid item xs={12} lg={6}>
-              <TokenInfo />
+              <TokenInfo reference={reference} />
               <SalesRules />
             </Grid>
           </Grid>

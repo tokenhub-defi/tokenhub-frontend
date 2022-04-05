@@ -1,12 +1,6 @@
 /* eslint-disable default-case */
 /* eslint-disable no-console */
-import {
-  Card,
-  Grid,
-  Paper,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Card, Grid, Paper, Skeleton, Typography } from "@mui/material";
 import SuiBox from "components/SuiBox";
 import { formatTokenAmountToHumanReadable } from "helpers/TokenUltis";
 import { TokenSalesContext } from "layouts/tokensales/context/TokenSalesContext";
@@ -131,7 +125,7 @@ const TokenSalesForm = () => {
                     }}
                     onButtonClick={() => {
                       handleSubmitClick(ACTION.DEPOSIT);
-                                           // setOpenConfirmDialog(true);
+                      // setOpenConfirmDialog(true);
                     }}
                     loading={loading}
                     adornment="NEAR"
@@ -205,4 +199,5 @@ const TokenSalesForm = () => {
     </>
   );
 };
+
 export default observer(TokenSalesForm);

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable import/named */
 import { Card, Grid, Skeleton, Typography } from "@mui/material";
 import SuiBox from "components/SuiBox";
@@ -7,13 +8,16 @@ import { observer } from "mobx-react";
 import { useContext, useEffect } from "react";
 import wavesWhite from "assets/images/shapes/waves-white.svg";
 import SuiTypography from "components/SuiTypography";
+import PropTypes from "prop-types";
 import humanize from "humanize";
-import { ArrowRight } from "@mui/icons-material";
+import { ArrowRight, Facebook, GitHub, Language, Twitter } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
-const TokenInfo = () => {
+const TokenInfo = (props) => {
   const { tokenSalesStore } = useContext(TokenSalesContext);
   const { tokenContract } = tokenSalesStore;
-
+  // eslint-disable-next-line react/prop-types
+  const { reference } = props;
   useEffect(() => {
     console.log(tokenContract);
   }, []);
@@ -27,7 +31,7 @@ const TokenInfo = () => {
               <Grid item xs={12} lg={6}>
                 <SuiBox display="flex" flexDirection="column" height="100%">
                   <Typography variant="h4" component="div" sx={{ mb: 1 }}>
-                    Token Information
+                    Sale Information
                   </Typography>
                   <SuiTypography variant="h6" component="div">
                     <ArrowRight
@@ -93,9 +97,8 @@ const TokenInfo = () => {
                   display="grid"
                   justifyContent="center"
                   alignItems="center"
-                  bgColor="info"
+                  bgColor="#ffb25a"
                   borderRadius="lg"
-                  variant="gradient"
                 >
                   <SuiBox
                     component="img"
@@ -108,11 +111,60 @@ const TokenInfo = () => {
                     height="100%"
                   />
                   {/* <SuiBox component="img" src={rocketWhite} alt="rocket" width="100%" pt={3} /> */}
+
                   <SuiTypography variant="h1" fontWeight="bold" color="white">
-                    {tokenContract.tokenInfo.symbol}
+                    {reference?.logo_url != null && <img src={reference.logo_url} alt="logo" />}
+                    {reference?.logo_url == null && tokenContract.tokenInfo.symbol}
                   </SuiTypography>
                 </SuiBox>
               </Grid>
+              <SuiBox pl={3}>
+                <SuiTypography variant="h6" component="div">
+                  <ArrowRight fontSize="medium" sx={{ verticalAlign: "middle" }} color="primary" />{" "}
+                  Project description:{" "}
+                  <SuiTypography
+                    component="p"
+                    variant="h6"
+                    fontWeight="bold"
+                    color="primary"
+                    sx={{ textAlign: "justify" }}
+                  >
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle", visibility: "hidden" }}
+                      color="primary"
+                    />{" "}
+                    {reference.description}
+                  </SuiTypography>
+                </SuiTypography>
+                <SuiTypography variant="h6" component="div">
+                  <ArrowRight fontSize="medium" sx={{ verticalAlign: "middle" }} color="primary" />{" "}
+                  Social Channels:{" "}
+                  <SuiTypography component="p">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle", visibility: "hidden" }}
+                      color="primary"
+                    />{" "}
+                    {Object.keys(reference).map((key) => (
+                      <Link href={reference[key]} underline="none" target="_blank" rel="noopener">
+                        {key === "website" && (
+                          <Language sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                        )}
+                        {key === "github" && (
+                          <GitHub sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                        )}
+                        {key === "facebook" && (
+                          <Facebook sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                        )}
+                        {key === "twitter" && (
+                          <Twitter sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                        )}
+                      </Link>
+                    ))}
+                  </SuiTypography>
+                </SuiTypography>
+              </SuiBox>
             </Grid>
           </SuiBox>
         </Card>
@@ -131,5 +183,10 @@ const TokenInfo = () => {
     </>
   );
 };
-
+TokenInfo.propType = {
+  reference: PropTypes.any,
+};
+TokenInfo.propDefault = {
+  reference: null,
+};
 export default observer(TokenInfo);
