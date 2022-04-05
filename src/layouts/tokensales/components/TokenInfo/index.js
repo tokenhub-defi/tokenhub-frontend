@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/prop-types */
 /* eslint-disable import/named */
 import { Card, Grid, Skeleton, Typography } from "@mui/material";
@@ -11,7 +12,6 @@ import SuiTypography from "components/SuiTypography";
 import PropTypes from "prop-types";
 import humanize from "humanize";
 import { ArrowRight, Facebook, GitHub, Language, Twitter } from "@mui/icons-material";
-import { Link } from "react-router-dom";
 
 const TokenInfo = (props) => {
   const { tokenSalesStore } = useContext(TokenSalesContext);
@@ -147,20 +147,48 @@ const TokenInfo = (props) => {
                       color="primary"
                     />{" "}
                     {Object.keys(reference).map((key) => (
-                      <Link href={reference[key]} underline="none" target="_blank" rel="noopener">
+                      <>
                         {key === "website" && (
-                          <Language sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          <a
+                            href={reference[key]}
+                            underline="none"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Language sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          </a>
                         )}
                         {key === "github" && (
-                          <GitHub sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          <a
+                            href={reference[key]}
+                            underline="none"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <GitHub sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          </a>
                         )}
                         {key === "facebook" && (
-                          <Facebook sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          <a
+                            href={reference[key]}
+                            underline="none"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Facebook sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          </a>
                         )}
                         {key === "twitter" && (
-                          <Twitter sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          <a
+                            href={reference[key]}
+                            underline="none"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Twitter sx={{ mr: "5px", ":hover": { color: "primary" } }} />
+                          </a>
                         )}
-                      </Link>
+                      </>
                     ))}
                   </SuiTypography>
                 </SuiTypography>
