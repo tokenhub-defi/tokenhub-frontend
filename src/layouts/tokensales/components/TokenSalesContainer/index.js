@@ -122,7 +122,7 @@ const TokenSalesContainer = () => {
       <SuiBox py={3}>
         <SuiBox mb={3}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={4} xl={4}>
+            <Grid item xs={12} sm={3} xl={3}>
               <PeriodCard
                 title={{ text: "start time" }}
                 period={
@@ -132,7 +132,7 @@ const TokenSalesContainer = () => {
                 countDown={startCountdown}
               />
             </Grid>
-            <Grid item xs={12} sm={4} xl={4}>
+            <Grid item xs={12} sm={3} xl={3}>
               <PeriodCard
                 title={{ text: "sales period" }}
                 period={
@@ -146,7 +146,7 @@ const TokenSalesContainer = () => {
                 countDown={saleCountDown}
               />
             </Grid>
-            <Grid item xs={12} sm={4} xl={4}>
+            <Grid item xs={12} sm={3} xl={3}>
               <PeriodCard
                 title={{ text: "grace period" }}
                 period={
@@ -158,6 +158,14 @@ const TokenSalesContainer = () => {
                   // ""
                 }
                 icon={{ color: "primary", component: "access_time" }}
+                countDown={graceCountdown}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3} xl={3}>
+              <PeriodCard
+                title={{ text: "Number of participants" }}
+                period={tokenContract.saleStat.num_of_users}
+                icon={{ color: "success", component: "group" }}
                 countDown={graceCountdown}
               />
             </Grid>

@@ -60,6 +60,17 @@ const TokenInfo = (props) => {
                       {tokenContract.tokenPeriod}
                     </SuiTypography>
                   </SuiTypography>
+                  {/* <SuiTypography variant="h6" component="div">
+                    <ArrowRight
+                      fontSize="medium"
+                      sx={{ verticalAlign: "middle" }}
+                      color="primary"
+                    />{" "}
+                    Number of participants:{" "}
+                    <SuiTypography variant="h6" component="span" color="primary">
+                      {tokenContract.saleStat.num_of_users}
+                    </SuiTypography>
+                  </SuiTypography> */}
                   <SuiTypography variant="h6" component="div">
                     <ArrowRight
                       fontSize="medium"

@@ -103,7 +103,13 @@ export class TokenSalesStore {
         // "dev-1636808664410-33820590914842",
         saleContract,
         {
-          viewMethods: ["get_total_deposit", "get_sale_info", "check_sale_status", "get_user_sale"],
+          viewMethods: [
+            "get_total_deposit",
+            "get_sale_info",
+            "check_sale_status",
+            "get_user_sale",
+            "get_sale_stats",
+          ],
           // Change methods can modify the state. But you don't receive the returned value when called.
           changeMethods: ["deposit", "withdraw", "finish", "redeem"],
         }
@@ -165,10 +171,12 @@ export class TokenSalesStore {
         this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_sale_info"),
         this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_total_deposit_json"),
         this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "check_sale_status"),
+        this.tokenStore.callViewMethod(accountId || this.ACCOUNT_ID, "get_sale_stats"),
       ]);
       const saleInfo = result[0];
       const totalDeposit = result[1];
       const tokenPeriod = result[2];
+      const saleStat = result[3];
       let tokenContract = await this.initTokenContract(saleInfo.ft_contract_name);
 
       const tokenInfo = await this.tokenStore.callViewMethod(
@@ -182,6 +190,7 @@ export class TokenSalesStore {
           tokenPeriod: tokenPeriod,
           saleInfo: saleInfo,
           tokenInfo: tokenInfo,
+          saleStat: saleStat,
         },
       };
       this.tokenContract = tokenContract;
