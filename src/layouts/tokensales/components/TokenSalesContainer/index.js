@@ -164,9 +164,12 @@ const TokenSalesContainer = () => {
             <Grid item xs={12} sm={3} xl={3}>
               <PeriodCard
                 title={{ text: "Number of participants" }}
-                period={tokenContract.saleStat.num_of_users}
+                period={
+                  tokenContract.saleStat?.num_of_users > 0
+                    ? tokenContract.saleStat?.num_of_users
+                    : 0
+                }
                 icon={{ color: "success", component: "group" }}
-                countDown={graceCountdown}
               />
             </Grid>
           </Grid>
