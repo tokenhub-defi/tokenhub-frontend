@@ -275,7 +275,7 @@ export class TokenSalesStore {
         show: true,
       };
 
-      const res = await contract.redeem({}, this.DEFAULT_GAS, "1");
+      const res = await contract.redeem({}, this.DEFAULT_GAS, "1250000000000000000000");
       if (res) {
         this.notification = {
           type: NotificationType.SUCCESS,

@@ -158,7 +158,9 @@ const TokenSalesForm = () => {
                     label="Redeem"
                     defaultValue={handleRedeemValue()}
                     buttonDisable={
-                      userContract?.is_redeemed === 1 || tokenContract.tokenPeriod !== "FINISHED"
+                      userContract?.is_redeemed === 1 ||
+                      tokenContract.tokenPeriod !== "FINISHED" ||
+                      tokenSalesStore.redeem === 0
                     }
                     disabled={
                       userContract?.is_redeemed === 1 || tokenContract.tokenPeriod !== "FINISHED"
