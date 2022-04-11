@@ -64,32 +64,6 @@ const TokenSalesItem = (props) => {
                 // defaultValue={tokenData.totalDeposit.formatted_amount}
                 disabled
                 marks={[
-                  // {
-                  //   value: tokenData.totalDeposit.min || 0,
-                  //   label: (
-                  //     <Box sx={{ ml: "5rem" }}>
-                  //       <SuiTypography component="p" variant="caption" fontWeight="bold">
-                  //         Min raise
-                  //       </SuiTypography>
-                  //       <SuiTypography component="p" variant="h5" fontWeight="bold">
-                  //         ${tokenData.totalDeposit.min || 0} NEAR
-                  //       </SuiTypography>
-                  //     </Box>
-                  //   ),
-                  // },
-                  // {
-                  //   value: token.max,
-                  //   label: (
-                  //     <Box sx={{ mr: "5rem" }}>
-                  //       <SuiTypography component="p" variant="caption" fontWeight="bold">
-                  //         Max raise
-                  //       </SuiTypography>
-                  //       <SuiTypography component="p" variant="h5" fontWeight="bold">
-                  //         ${token.max} NEAR
-                  //       </SuiTypography>
-                  //     </Box>
-                  //   ),
-                  // },
                   {
                     value: tokenData.totalDeposit.formatted_amount,
                   },
