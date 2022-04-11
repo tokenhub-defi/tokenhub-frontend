@@ -25,7 +25,8 @@ import { useSoftUIController, setMiniSidenav } from "context";
 // Images
 import brand from "assets/images/logo.png";
 import { observer } from "mobx-react";
-import TokenSales from "layouts/tokensales";
+// import TokenSales from "layouts/tokensales";
+import UnderMaintenance from "components/App/UnderMaintenance";
 
 const App = () => {
   const [controller, dispatch] = useSoftUIController();
@@ -102,7 +103,7 @@ const App = () => {
         <Route
           exact
           path="/token-sales/token-info/:saleId"
-          component={TokenSales}
+          component={UnderMaintenance}
           key="token-info"
         />
 
